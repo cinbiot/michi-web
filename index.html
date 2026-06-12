@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Para ti, mi amor 🌼</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<style>
+:root {
+  --rojo: #CC1133;
+  --rojo-claro: #FF3355;
+  --azul: #0A1A3A;
+  --azul-medio: #1A3060;
+  --azul-claro: #2244AA;
+  --plomo: #8899AA;
+  --plomo-claro: #AABBCC;
+  --negro: #050810;
+  --blanco: #F0F4FF;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--negro); font-family:'Montserrat',sans-serif; }
+
+/* ── PANTALLA BLOQUEO ── */
+#screen-lock {
+  position:fixed; inset:0; z-index:100;
+  background: radial-gradient(ellipse at 30% 20%, #1A0A1A 0%, #050810 60%, #0A0A1A 100%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition: opacity 1s ease;
+}
+#screen-lock.hidden { opacity:0; pointer-events:none; }
+
+.daisy-fall { position:absolute; pointer-events:none; animation:fall linear infinite; }
+@keyframes fall {
+  0%   { transform:translateY(-60px) rotate(0deg); opacity:0.85; }
+  100% { transform:translateY(110vh) rotate(400deg); opacity:0; }
+}
+
+#lock-title {
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(2.2rem,7vw,3.8rem);
+  color:var(--blanco);
+  margin-bottom:48px;
+  animation:titleGlow 3s ease-in-out infinite;
+}
+@keyframes titleGlow {
+  0%,100% { text-shadow:0 0 20px rgba(200,30,60,0.5); }
+  50%      { text-shadow:0 0 50px rgba(200,30,60,0.9),0 0 80px rgba(50,80,200,0.4); }
+}
+
+#fp-wrap {
+  position:relative; width:180px; height:180px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+#fp-ring {
+  position:absolute; inset:-18px; border-radius:50%;
+  border:2.5px solid transparent;
+  border-top-color:var(--rojo); border-right-color:var(--azul-claro);
+  border-bottom-color:var(--rojo-claro); border-left-color:var(--azul);
+  animation:spin 2.5s linear infinite;
+}
+#fp-ring2 {
+  position:absolute; inset:-30px; border-radius:50%;
+  border:1px solid rgba(100,150,255,0.2);
+  animation:spin 5s linear infinite reverse;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+#fp-icon {
+  width:130px; height:130px;
+  filter:drop-shadow(0 0 14px rgba(200,30,60,0.7));
+  transition:filter 0.3s;
+}
+#fp-icon:hover, #fp-icon:active {
+  filter:drop-shadow(0 0 24px rgba(200,30,60,1)) drop-shadow(0 0 40px rgba(50,80,255,0.5));
+}
+
+#scan-line {
+  position:absolute; left:10%; right:10%; height:2px;
+  background:linear-gradient(90deg,transparent,var(--rojo-claro),var(--azul-claro),transparent);
+  top:0; border-radius:2px; opacity:0; pointer-events:none;
+}
+@keyframes scanMove { 0%{top:5%;opacity:1} 100%{top:95%;opacity:0.2} }
+
+#hint {
+  margin-top:28px; font-size:12px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--plomo-claro); animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+#progress-bar {
+  margin-top:18px; width:160px; height:3px;
+  background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; opacity:0;
+  transition:opacity 0.3s;
+}
+#progress-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg,var(--rojo),var(--azul-claro));
+  transition:width 2s ease;
+}
+
+/* ── PANTALLA REVEAL ── */
+#screen-reveal {
+  position:fixed; inset:0; z-index:50;
+  overflow-y:auto; opacity:0; pointer-events:none;
+  transition:opacity 1.2s ease;
+}
+#screen-reveal.visible { opacity:1; pointer-events:all; }
+
+#canvas3d { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+.reveal-wrap {
+  position:relative; z-index:10;
+  max-width:700px; width:100%; margin:0 auto;
+  padding:60px 24px 100px;
+  display:flex; flex-direction:column; align-items:center; gap:36px;
+}
+
+.deco-line {
+  font-size:11px; letter-spacing:5px; text-transform:uppercase;
+  color:var(--plomo); border-top:1px solid rgba(100,120,200,0.25);
+  border-bottom:1px solid rgba(100,120,200,0.25); padding:8px 28px;
+}
+
+.page-title {
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(2.8rem,9vw,5rem);
+  color:var(--blanco); text-align:center; line-height:1.1;
+  text-shadow:0 0 40px rgba(200,30,60,0.5);
+}
+
+/* Carta */
+.carta-box {
+  width:100%;
+  background:rgba(10,20,50,0.55);
+  border:1px solid rgba(100,130,200,0.2);
+  border-radius:16px; padding:36px 28px;
+  backdrop-filter:blur(8px);
+  color:rgba(220,230,255,0.85);
+  font-size:15px; line-height:2; font-weight:300; text-align:center;
+}
+.carta-box p { margin-bottom:16px; }
+.carta-box p:last-child { margin-bottom:0; }
+
+/* Galería fotos */
+#galeria {
+  width:100%; display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px;
+}
+#galeria img {
+  width:100%; aspect-ratio:1; object-fit:cover;
+  border-radius:12px; border:1px solid rgba(100,130,200,0.2);
+  transition:transform 0.3s, box-shadow 0.3s;
+}
+#galeria img:hover { transform:scale(1.04); box-shadow:0 0 20px rgba(200,30,60,0.4); }
+
+/* Videos */
+#videos { width:100%; display:flex; flex-direction:column; gap:16px; }
+.video-item {
+  width:100%; border-radius:12px; overflow:hidden;
+  border:1px solid rgba(100,130,200,0.2);
+  background:rgba(10,20,50,0.4);
+}
+.video-item iframe { width:100%; height:220px; border:none; }
+.video-caption {
+  padding:10px 16px; font-size:13px; color:var(--plomo-claro);
+  font-style:italic;
+}
+
+/* Firma */
+.firma {
+  font-family:'Great Vibes',cursive;
+  font-size:2.6rem; color:var(--rojo-claro);
+  text-shadow:0 0 20px rgba(200,30,60,0.6);
+}
+.heart-beat { display:inline-block; animation:hb 1.2s ease-in-out infinite; font-size:1.8rem; }
+@keyframes hb { 0%,100%{transform:scale(1)} 14%{transform:scale(1.2)} 28%{transform:scale(1)} 42%{transform:scale(1.12)} }
+
+/* Loading */
+.loading { color:var(--plomo); font-size:13px; letter-spacing:2px; text-align:center; padding:20px; }
+
+/* Sección vacía */
+.empty-msg { color:var(--plomo); font-size:13px; text-align:center; opacity:0.5; padding:16px; }
+</style>
+</head>
+<body>
+
+<!-- PANTALLA BLOQUEO -->
+<div id="screen-lock">
+  <div id="lock-title">Para ti, mi amor 🌼</div>
+  <div id="fp-wrap" onclick="startScan()">
+    <div id="fp-ring"></div>
+    <div id="fp-ring2"></div>
+    <svg id="fp-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="fpg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#FF3355"/>
+          <stop offset="100%" stop-color="#2244AA"/>
+        </radialGradient>
+      </defs>
+      <path d="M50 8 C29 8 12 25 12 46 C12 55 15 64 20 71" fill="none" stroke="url(#fpg)" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M50 8 C71 8 88 25 88 46 C88 55 85 64 80 71" fill="none" stroke="url(#fpg)" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M30 25 C24 32 20 39 20 47 C20 62 34 75 50 75 C66 75 80 62 80 47 C80 39 76 32 70 25" fill="none" stroke="url(#fpg)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M37 20 C33 27 31 35 31 44 C31 57 40 67 50 67 C60 67 69 57 69 44 C69 35 67 27 63 20" fill="none" stroke="url(#fpg)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M44 17 C41 23 39 31 39 40 C39 52 44 61 50 61 C56 61 61 52 61 40 C61 31 59 23 56 17" fill="none" stroke="url(#fpg)" stroke-width="2" stroke-linecap="round"/>
+      <path d="M50 16 C48 22 47 30 47 38 C47 50 48.5 57 50 57 C51.5 57 53 50 53 38 C53 30 52 22 50 16" fill="none" stroke="url(#fpg)" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M22 60 C25 70 32 78 40 83" fill="none" stroke="url(#fpg)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M78 60 C75 70 68 78 60 83" fill="none" stroke="url(#fpg)" stroke-width="2.2" stroke-linecap="round"/>
+      <div id="scan-line"></div>
+    </svg>
+    <div id="scan-line"></div>
+  </div>
+  <div id="hint">Toca para desbloquear</div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+</div>
+
+<!-- PANTALLA REVEAL -->
+<div id="screen-reveal">
+  <canvas id="canvas3d"></canvas>
+  <div class="reveal-wrap">
+    <div class="deco-line">Dedicatoria</div>
+    <div class="page-title" id="page-title">Para ti,<br/>mi amor</div>
+
+    <!-- Margaritas deco -->
+    <div style="display:flex;gap:12px;align-items:center">
+      <svg width="30" height="30" viewBox="0 0 32 32"><g transform="translate(16,16)">
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/>
+        <circle cx="0" cy="0" r="3.5" fill="#FFD700"/>
+      </g></svg>
+      <span style="color:var(--plomo);font-size:11px;letter-spacing:3px">✦ CON TODO MI AMOR ✦</span>
+      <svg width="30" height="30" viewBox="0 0 32 32"><g transform="translate(16,16)">
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/>
+        <ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/>
+        <circle cx="0" cy="0" r="3.5" fill="#FFD700"/>
+      </g></svg>
+    </div>
+
+    <!-- Carta (cargada desde Supabase) -->
+    <div id="carta-container" class="loading">Cargando carta...</div>
+
+    <!-- Galería fotos -->
+    <div id="galeria-section" style="width:100%;display:none">
+      <div class="deco-line" style="margin-bottom:20px">Nuestros momentos 📸</div>
+      <div id="galeria"></div>
+    </div>
+
+    <!-- Videos -->
+    <div id="videos-section" style="width:100%;display:none">
+      <div class="deco-line" style="margin-bottom:20px">Videos especiales 🎬</div>
+      <div id="videos"></div>
+    </div>
+
+    <div class="firma" id="firma-txt">Siempre tuyo ❤</div>
+    <div>
+      <span class="heart-beat">🌼</span>
+      <span class="heart-beat" style="animation-delay:.2s">❤️</span>
+      <span class="heart-beat" style="animation-delay:.4s">🌼</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MARGARITAS CAYENDO ──
+function spawnDaisy() {
+  const d = document.createElement('div');
+  d.className = 'daisy-fall';
+  const size = 18 + Math.random() * 20;
+  d.style.cssText = `left:${Math.random()*100}vw;top:-60px;width:${size}px;height:${size}px;animation-duration:${5+Math.random()*7}s;animation-delay:${Math.random()*2}s;`;
+  const r = Math.floor(Math.random()*360);
+  d.innerHTML = `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    <g transform="translate(16,16) rotate(${r})">
+      ${[0,45,90,135,180,225,270,315].map(a=>`<ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.8" transform="rotate(${a})"/>`).join('')}
+      <circle cx="0" cy="0" r="3.5" fill="#FFD700"/>
+    </g></svg>`;
+  document.getElementById('screen-lock').appendChild(d);
+  d.addEventListener('animationend', () => d.remove());
+}
+setInterval(spawnDaisy, 700);
+for(let i=0;i<8;i++) setTimeout(spawnDaisy, i*200);
+
+// ── HUELLA ──
+let scanning = false;
+function startScan() {
+  if(scanning) return;
+  scanning = true;
+  const hint = document.getElementById('hint');
+  hint.textContent = 'Verificando...';
+  const sl = document.getElementById('scan-line');
+  sl.style.animation = 'scanMove 1.4s linear infinite';
+  sl.style.opacity = '1';
+  const pb = document.getElementById('progress-bar');
+  const pf = document.getElementById('progress-fill');
+  pb.style.opacity = '1';
+  setTimeout(() => pf.style.width = '100%', 80);
+  setTimeout(() => { hint.textContent = '✓ Acceso concedido'; }, 2100);
+  setTimeout(unlock, 2700);
+}
+
+function unlock() {
+  document.getElementById('screen-lock').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('screen-lock').style.display = 'none';
+    const rev = document.getElementById('screen-reveal');
+    rev.classList.add('visible');
+    initCanvas();
+    loadContent();
+  }, 1000);
+}
+
+// ── CARGAR CONTENIDO DESDE SUPABASE ──
+async function loadContent() {
+  try {
+    // Cargar carta
+    const { data: carta } = await sb.from('carta').select('*').order('created_at', {ascending:false}).limit(1).single();
+    const cartaEl = document.getElementById('carta-container');
+    if (carta) {
+      cartaEl.className = 'carta-box';
+      cartaEl.innerHTML = carta.contenido.split('\n\n').map(p => `<p>${p}</p>`).join('');
+      if (carta.titulo) document.getElementById('page-title').innerHTML = carta.titulo.replace('\n','<br/>');
+      if (carta.firma) document.getElementById('firma-txt').textContent = carta.firma;
+    } else {
+      cartaEl.className = 'carta-box';
+      cartaEl.innerHTML = '<p>Este mes vuelvo a confirmarte que el tiempo se puede medir en miradas. Que las palabras pueden volverse caricia y que un "hola" al amanecer puede sostener el resto del día.</p><p>Hoy celebro otro mes contigo, otro pedacito de vida donde sigues apareciendo como mi parte favorita del día.</p><p style="color:#FF3355;font-style:italic;">Feliz mes, mi amor.</p>';
+    }
+
+    // Cargar fotos
+    const { data: fotos } = await sb.from('fotos').select('*').order('created_at', {ascending:false});
+    if (fotos && fotos.length > 0) {
+      const sec = document.getElementById('galeria-section');
+      const grid = document.getElementById('galeria');
+      sec.style.display = 'block';
+      fotos.forEach(f => {
+        const img = document.createElement('img');
+        img.src = f.url;
+        img.alt = f.descripcion || 'Momento especial';
+        img.loading = 'lazy';
+        grid.appendChild(img);
+      });
+    }
+
+    // Cargar videos
+    const { data: videos } = await sb.from('videos').select('*').order('created_at', {ascending:false});
+    if (videos && videos.length > 0) {
+      const vsec = document.getElementById('videos-section');
+      const vcont = document.getElementById('videos');
+      vsec.style.display = 'block';
+      videos.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'video-item';
+        const embedUrl = v.url.includes('youtube') || v.url.includes('youtu.be')
+          ? v.url.replace('watch?v=','embed/').replace('youtu.be/','youtube.com/embed/')
+          : v.url;
+        div.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>
+          ${v.descripcion ? `<div class="video-caption">${v.descripcion}</div>` : ''}`;
+        vcont.appendChild(div);
+      });
+    }
+  } catch(e) {
+    console.log('Error cargando contenido:', e);
+    // Muestra carta por defecto si no hay Supabase configurado
+    const cartaEl = document.getElementById('carta-container');
+    cartaEl.className = 'carta-box';
+    cartaEl.innerHTML = '<p>Este mes vuelvo a confirmarte que el tiempo se puede medir en miradas.</p><p style="color:#FF3355;font-style:italic;">Feliz mes, mi amor.</p>';
+  }
+}
+
+// ── CANVAS GALAXIA 3D ──
+function initCanvas() {
+  const canvas = document.getElementById('canvas3d');
+  const ctx = canvas.getContext('2d');
+  function setSize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  setSize();
+  window.addEventListener('resize', setSize);
+
+  const stars = Array.from({length:200}, () => ({
+    x:Math.random()*canvas.width, y:Math.random()*canvas.height,
+    r:Math.random()*1.4+0.2, op:Math.random(), vel:Math.random()*0.006+0.002
+  }));
+  const orbs = Array.from({length:60}, (_,i) => ({
+    angle:(i/60)*Math.PI*2,
+    radius:70+Math.random()*200,
+    speed:(Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1),
+    size:Math.random()*2.5+0.8,
+    color:['#CC1133','#2244AA','#8899AA','#FF4466','#3366CC'][Math.floor(Math.random()*5)],
+    op:Math.random()*0.5+0.2
+  }));
+
+  let t = 0;
+  function draw() {
+    const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2;
+    ctx.clearRect(0,0,W,H);
+
+    // Fondo
+    const bg = ctx.createRadialGradient(cx,cy*0.7,0,cx,cy,Math.max(W,H)*0.75);
+    bg.addColorStop(0,'#120818'); bg.addColorStop(0.4,'#08101E');
+    bg.addColorStop(0.8,'#050810'); bg.addColorStop(1,'#030508');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+    // Nebulosas
+    const n1 = ctx.createRadialGradient(cx*0.5,cy*1.4,0,cx*0.5,cy*1.4,W*0.45);
+    n1.addColorStop(0,'rgba(150,10,30,0.18)'); n1.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = n1; ctx.fillRect(0,0,W,H);
+    const n2 = ctx.createRadialGradient(cx*1.5,cy*0.5,0,cx*1.5,cy*0.5,W*0.38);
+    n2.addColorStop(0,'rgba(10,30,140,0.16)'); n2.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = n2; ctx.fillRect(0,0,W,H);
+
+    // Estrellas
+    stars.forEach(s => {
+      s.op += s.vel; if(s.op>1||s.op<0) s.vel*=-1;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${Math.abs(Math.sin(s.op*Math.PI))*0.7+0.1})`;
+      ctx.fill();
+    });
+
+    // Espiral
+    ctx.globalAlpha = 0.07;
+    [0,Math.PI].forEach((offset,i) => {
+      ctx.beginPath();
+      for(let r=0;r<220;r+=1.5) {
+        const a = r*0.065+offset+t*0.0008;
+        const px = cx+Math.cos(a)*r, py = cy+Math.sin(a)*r*0.4;
+        r===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+      }
+      ctx.strokeStyle = i===0 ? '#CC1133' : '#2244AA';
+      ctx.lineWidth = 1.2; ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+
+    // Partículas orbitales
+    orbs.forEach(o => {
+      o.angle += o.speed;
+      const px = cx+Math.cos(o.angle+t*0.0004)*o.radius;
+      const py = cy+Math.sin(o.angle+t*0.0004)*o.radius*0.42;
+      ctx.beginPath(); ctx.arc(px,py,o.size,0,Math.PI*2);
+      ctx.fillStyle = o.color; ctx.globalAlpha = o.op;
+      ctx.fill(); ctx.globalAlpha = 1;
+    });
+
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+</script>
+</body>
+</html>

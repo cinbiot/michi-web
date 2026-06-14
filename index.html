@@ -6,7 +6,13 @@
 <title>Para mi Michi 🌼</title>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Crimson+Text:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-config.js"></script>
+<script>
+const SUPABASE_URL = 'https://pnjxhzuayhsqvlitfaak.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GFbMfDmyqfpxa21DOp8kyQ_-rYlTNY4';
+const ADMIN_PASSWORD = '69770128Pp$';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 <style>
 :root{--rojo:#CC1133;--rojo-claro:#FF3355;--azul:#0A1A3A;--azul-claro:#2244AA;--plomo:#8899AA;--plomo-claro:#AABBCC;--negro:#050810;--blanco:#F0F4FF;}
 *{margin:0;padding:0;box-sizing:border-box;}

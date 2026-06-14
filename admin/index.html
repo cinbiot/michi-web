@@ -6,143 +6,72 @@
 <title>Admin — Panel de amor 🔐</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/supabase-config.js"></script>
+<script>
+const SUPABASE_URL = 'https://pnjxhzuayhsqvlitfaak.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GFbMfDmyqfpxa21DOp8kyQ_-rYlTNY4';
+const ADMIN_PASSWORD = '69770128Pp$';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 <style>
-:root {
-  --rojo:#CC1133; --rojo-claro:#FF3355;
-  --azul:#0A1A3A; --azul-claro:#2244AA;
-  --plomo:#8899AA; --negro:#050810; --blanco:#F0F4FF;
-  --card:rgba(10,20,50,0.7); --border:rgba(100,130,200,0.2);
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--negro); color:var(--blanco); font-family:'Montserrat',sans-serif; min-height:100vh; }
-
-/* LOGIN */
-#login-screen {
-  min-height:100vh; display:flex; align-items:center; justify-content:center;
-  background:radial-gradient(ellipse at 30% 30%,#1A0A1A,#050810);
-}
-.login-box {
-  background:var(--card); border:1px solid var(--border);
-  border-radius:20px; padding:48px 36px; width:340px; text-align:center;
-  backdrop-filter:blur(10px);
-}
-.login-box h2 { font-size:1.5rem; font-weight:500; margin-bottom:8px; }
-.login-box p { color:var(--plomo); font-size:13px; margin-bottom:32px; }
-.inp {
-  width:100%; padding:14px 18px; border-radius:10px;
-  border:1px solid var(--border); background:rgba(255,255,255,0.05);
-  color:var(--blanco); font-size:14px; font-family:inherit; outline:none;
-  transition:border-color 0.2s; margin-bottom:14px;
-}
-.inp:focus { border-color:var(--rojo-claro); }
-.btn-main {
-  width:100%; padding:14px; border-radius:10px; border:none;
-  background:linear-gradient(135deg,var(--rojo),var(--azul-claro));
-  color:#fff; font-size:14px; font-weight:600; cursor:pointer;
-  font-family:inherit; transition:opacity 0.2s;
-}
-.btn-main:hover { opacity:0.85; }
-.btn-main:disabled { opacity:0.5; cursor:not-allowed; }
-.err { color:#FF5577; font-size:12px; margin-top:10px; }
-
-/* ADMIN PANEL */
-#admin-panel { display:none; max-width:800px; margin:0 auto; padding:32px 20px 80px; }
-
-.admin-header {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:36px; padding-bottom:20px;
-  border-bottom:1px solid var(--border);
-}
-.admin-header h1 { font-size:1.4rem; font-weight:500; }
-.badge { font-size:11px; background:rgba(204,17,51,0.2); color:var(--rojo-claro);
-  border:1px solid rgba(204,17,51,0.3); padding:4px 12px; border-radius:999px; }
-
-/* Tabs */
-.tabs { display:flex; gap:8px; margin-bottom:28px; flex-wrap:wrap; }
-.tab {
-  padding:8px 20px; border-radius:999px; border:1px solid var(--border);
-  background:transparent; color:var(--plomo); font-size:13px;
-  cursor:pointer; font-family:inherit; transition:all 0.2s;
-}
-.tab.active { background:rgba(204,17,51,0.15); border-color:var(--rojo); color:var(--rojo-claro); }
-
-/* Secciones */
-.section { display:none; }
-.section.active { display:block; }
-
-.card {
-  background:var(--card); border:1px solid var(--border);
-  border-radius:16px; padding:28px; margin-bottom:20px;
-  backdrop-filter:blur(8px);
-}
-.card h3 { font-size:14px; font-weight:500; color:var(--plomo); letter-spacing:1px; text-transform:uppercase; margin-bottom:20px; }
-
-label { font-size:13px; color:var(--plomo); display:block; margin-bottom:6px; margin-top:14px; }
-label:first-of-type { margin-top:0; }
-textarea.inp { resize:vertical; min-height:150px; line-height:1.7; }
-
-.btn-save {
-  margin-top:18px; padding:12px 28px; border-radius:10px; border:none;
-  background:linear-gradient(135deg,var(--rojo),var(--azul-claro));
-  color:#fff; font-size:13px; font-weight:600; cursor:pointer;
-  font-family:inherit; transition:opacity 0.2s;
-}
-.btn-save:hover { opacity:0.85; }
-.btn-save:disabled { opacity:0.4; cursor:not-allowed; }
-
-/* Fotos grid */
-.fotos-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-top:16px; }
-.foto-item { position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; border:1px solid var(--border); }
-.foto-item img { width:100%; height:100%; object-fit:cover; }
-.foto-delete {
-  position:absolute; top:6px; right:6px; width:26px; height:26px;
-  border-radius:50%; background:rgba(200,20,50,0.85); border:none;
-  color:#fff; font-size:14px; cursor:pointer; display:flex;
-  align-items:center; justify-content:center; line-height:1;
-}
-
-/* Upload area */
-.upload-area {
-  border:2px dashed var(--border); border-radius:12px; padding:32px;
-  text-align:center; cursor:pointer; transition:border-color 0.2s;
-  margin-bottom:16px;
-}
-.upload-area:hover { border-color:var(--rojo-claro); }
-.upload-area input { display:none; }
-.upload-area p { color:var(--plomo); font-size:13px; margin-top:8px; }
-.upload-area span { font-size:2rem; }
-
-/* Videos lista */
-.video-list { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
-.video-list-item {
-  display:flex; align-items:center; gap:12px; padding:14px 16px;
-  background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid var(--border);
-}
-.video-list-item .url { flex:1; font-size:12px; color:var(--plomo); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.btn-del { padding:6px 14px; border-radius:8px; border:1px solid rgba(200,30,50,0.3);
-  background:rgba(200,30,50,0.1); color:var(--rojo-claro); font-size:12px;
-  cursor:pointer; font-family:inherit; }
-
-/* Toast */
-.toast {
-  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
-  background:rgba(20,40,80,0.95); border:1px solid var(--border);
-  border-radius:12px; padding:12px 24px; font-size:13px; color:var(--blanco);
-  backdrop-filter:blur(10px); transition:transform 0.3s; z-index:999; white-space:nowrap;
-}
-.toast.show { transform:translateX(-50%) translateY(0); }
-.toast.ok { border-color:rgba(50,200,100,0.4); }
-.toast.err { border-color:rgba(200,30,50,0.4); }
-
-/* Progress */
-.progress-wrap { width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; margin-top:10px; overflow:hidden; display:none; }
-.progress-bar  { height:100%; width:0%; background:linear-gradient(90deg,var(--rojo),var(--azul-claro)); border-radius:2px; transition:width 0.3s; }
+:root{--rojo:#CC1133;--rojo-claro:#FF3355;--azul:#0A1A3A;--azul-claro:#2244AA;--plomo:#8899AA;--negro:#050810;--blanco:#F0F4FF;--card:rgba(10,20,50,0.7);--border:rgba(100,130,200,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--negro);color:var(--blanco);font-family:'Montserrat',sans-serif;min-height:100vh;}
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 30%,#1A0A1A,#050810);}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px 36px;width:340px;text-align:center;backdrop-filter:blur(10px);}
+.login-box h2{font-size:1.5rem;font-weight:500;margin-bottom:8px;}
+.login-box p{color:var(--plomo);font-size:13px;margin-bottom:32px;}
+.inp{width:100%;padding:14px 18px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--blanco);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;margin-bottom:14px;}
+.inp:focus{border-color:var(--rojo-claro);}
+textarea.inp{resize:vertical;min-height:130px;line-height:1.7;}
+.btn-main{width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--rojo),var(--azul-claro));color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .2s;}
+.btn-main:hover{opacity:.85;}
+.err{color:#FF5577;font-size:12px;margin-top:10px;}
+#admin-panel{display:none;max-width:800px;margin:0 auto;padding:32px 20px 80px;}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.admin-header h1{font-size:1.4rem;font-weight:500;}
+.badge{font-size:11px;background:rgba(204,17,51,.2);color:var(--rojo-claro);border:1px solid rgba(204,17,51,.3);padding:4px 12px;border-radius:999px;}
+.tabs{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;}
+.tab{padding:8px 20px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--plomo);font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.tab.active{background:rgba(204,17,51,.15);border-color:var(--rojo);color:var(--rojo-claro);}
+.section{display:none;}
+.section.active{display:block;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;backdrop-filter:blur(8px);}
+.card h3{font-size:14px;font-weight:500;color:var(--plomo);letter-spacing:1px;text-transform:uppercase;margin-bottom:20px;}
+label{font-size:13px;color:var(--plomo);display:block;margin-bottom:6px;margin-top:14px;}
+label:first-of-type{margin-top:0;}
+.btn-save{margin-top:18px;padding:12px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--rojo),var(--azul-claro));color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .2s;}
+.btn-save:hover{opacity:.85;}
+.btn-save:disabled{opacity:.4;cursor:not-allowed;}
+.fotos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:16px;}
+.foto-item{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.foto-item img{width:100%;height:100%;object-fit:cover;}
+.foto-delete{position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(200,20,50,.85);border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.upload-area{border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:14px;}
+.upload-area:hover{border-color:var(--rojo-claro);}
+.upload-area input{display:none;}
+.upload-area p{color:var(--plomo);font-size:13px;margin-top:6px;}
+.upload-area span{font-size:2rem;}
+.progress-wrap{width:100%;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:10px;overflow:hidden;display:none;}
+.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--rojo),var(--azul-claro));border-radius:2px;transition:width .3s;}
+.lista-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid var(--border);margin-bottom:10px;}
+.lista-item .info{flex:1;}
+.lista-item .titulo-item{font-size:13px;color:var(--blanco);font-weight:500;margin-bottom:2px;}
+.lista-item .sub-item{font-size:11px;color:var(--plomo);}
+.btn-del{padding:6px 14px;border-radius:8px;border:1px solid rgba(200,30,50,.3);background:rgba(200,30,50,.1);color:var(--rojo-claro);font-size:12px;cursor:pointer;font-family:inherit;}
+.emoji-pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.emoji-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.05);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.emoji-btn.sel,.emoji-btn:hover{border-color:var(--rojo-claro);background:rgba(200,20,60,.15);}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(20,40,80,.95);border:1px solid var(--border);border-radius:12px;padding:12px 24px;font-size:13px;color:var(--blanco);backdrop-filter:blur(10px);transition:transform .3s;z-index:999;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:rgba(50,200,100,.4);}
+.toast.err2{border-color:rgba(200,30,50,.4);}
+.vista-badge{font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(50,200,100,.15);color:#50C878;border:1px solid rgba(50,200,100,.3);}
+.novista-badge{font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(255,80,130,.15);color:#FF88AA;border:1px solid rgba(255,80,130,.3);}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div style="font-size:2.5rem;margin-bottom:16px">🔐</div>
@@ -154,213 +83,223 @@ textarea.inp { resize:vertical; min-height:150px; line-height:1.7; }
   </div>
 </div>
 
-<!-- PANEL ADMIN -->
 <div id="admin-panel">
   <div class="admin-header">
     <h1>🌼 Panel de amor</h1>
     <span class="badge">Admin</span>
   </div>
-
-  <!-- TABS -->
   <div class="tabs">
     <button class="tab active" onclick="switchTab('carta',this)">💌 Carta</button>
-    <button class="tab" onclick="switchTab('fotos',this)">📸 Fotos</button>
+    <button class="tab" onclick="switchTab('sorpresas',this)">✨ Sorpresas</button>
+    <button class="tab" onclick="switchTab('fotos',this)">🐱 Fotos</button>
     <button class="tab" onclick="switchTab('videos',this)">🎬 Videos</button>
   </div>
 
-  <!-- SECCIÓN CARTA -->
+  <!-- CARTA -->
   <div class="section active" id="sec-carta">
     <div class="card">
-      <h3>Editar carta de amor</h3>
+      <h3>Carta del mes</h3>
       <label>Título de la página</label>
-      <input class="inp" id="carta-titulo" placeholder="Para ti, mi amor" value="Para ti,&#10;mi amor"/>
-      <label>Contenido de la carta</label>
-      <textarea class="inp" id="carta-contenido" placeholder="Escribe tu carta aquí...&#10;&#10;Separa los párrafos con una línea en blanco."></textarea>
+      <input class="inp" id="carta-titulo" placeholder="Para ti, mi amor"/>
+      <label>Contenido (separa párrafos con línea en blanco)</label>
+      <textarea class="inp" id="carta-contenido" placeholder="Escribe tu carta aquí..."></textarea>
       <label>Firma</label>
       <input class="inp" id="carta-firma" placeholder="Siempre tuyo ❤" value="Siempre tuyo ❤"/>
-      <br/>
-      <button class="btn-save" onclick="saveCarta()">💾 Guardar carta</button>
+      <br/><button class="btn-save" onclick="saveCarta()">💾 Guardar carta</button>
+    </div>
+    <div class="card">
+      <h3>Cartas anteriores</h3>
+      <div id="lista-cartas-admin"><div style="color:var(--plomo);font-size:13px">Cargando...</div></div>
     </div>
   </div>
 
-  <!-- SECCIÓN FOTOS -->
+  <!-- SORPRESAS -->
+  <div class="section" id="sec-sorpresas">
+    <div class="card">
+      <h3>➕ Nueva sorpresa</h3>
+      <label>Emoji</label>
+      <div class="emoji-pick">
+        <button class="emoji-btn sel" data-e="✨" onclick="selEmoji(this)">✨</button>
+        <button class="emoji-btn" data-e="❤️" onclick="selEmoji(this)">❤️</button>
+        <button class="emoji-btn" data-e="🎬" onclick="selEmoji(this)">🎬</button>
+        <button class="emoji-btn" data-e="🎵" onclick="selEmoji(this)">🎵</button>
+        <button class="emoji-btn" data-e="🌸" onclick="selEmoji(this)">🌸</button>
+        <button class="emoji-btn" data-e="🎁" onclick="selEmoji(this)">🎁</button>
+        <button class="emoji-btn" data-e="💌" onclick="selEmoji(this)">💌</button>
+        <button class="emoji-btn" data-e="⭐" onclick="selEmoji(this)">⭐</button>
+      </div>
+      <label>Título de la sorpresa</label>
+      <input class="inp" id="sor-titulo" placeholder="Tengo algo especial para ti..."/>
+      <label>Descripción (opcional)</label>
+      <input class="inp" id="sor-desc" placeholder="Un pequeño mensaje..."/>
+      <label>Link (YouTube, página, etc.) — opcional</label>
+      <input class="inp" id="sor-url" placeholder="https://..."/>
+      <br/><button class="btn-save" onclick="saveSorpresa()">✨ Publicar sorpresa</button>
+      <p style="font-size:12px;color:var(--plomo);margin-top:10px">⚡ Al guardar aparecerá automáticamente como sorpresa grande cuando Michi abra la página</p>
+    </div>
+    <div class="card">
+      <h3>Sorpresas guardadas</h3>
+      <div id="lista-sorpresas-admin"><div style="color:var(--plomo);font-size:13px">Cargando...</div></div>
+    </div>
+  </div>
+
+  <!-- FOTOS -->
   <div class="section" id="sec-fotos">
     <div class="card">
       <h3>Subir fotos</h3>
-      <label class="upload-area" id="upload-area" for="foto-input">
-        <span>🖼️</span>
-        <p>Toca aquí para elegir fotos de tu galería</p>
-        <p style="font-size:11px;margin-top:4px;opacity:0.6">JPG, PNG — máx. 5MB por foto</p>
+      <label class="upload-area" for="foto-input">
+        <span>🐱</span>
+        <p>Toca aquí para elegir fotos</p>
+        <p style="font-size:11px;margin-top:4px;opacity:.6">JPG, PNG — máx. 5MB por foto</p>
         <input type="file" id="foto-input" accept="image/*" multiple onchange="uploadFotos(this.files)"/>
       </label>
-      <div class="progress-wrap" id="foto-progress-wrap"><div class="progress-bar" id="foto-progress"></div></div>
+      <div class="progress-wrap" id="foto-pw"><div class="progress-bar" id="foto-pb"></div></div>
     </div>
     <div class="card">
       <h3>Fotos guardadas</h3>
-      <div class="fotos-grid" id="fotos-grid">
-        <div style="color:var(--plomo);font-size:13px;grid-column:1/-1">Cargando...</div>
-      </div>
+      <div class="fotos-grid" id="fotos-grid"><div style="color:var(--plomo);font-size:13px">Cargando...</div></div>
     </div>
   </div>
 
-  <!-- SECCIÓN VIDEOS -->
+  <!-- VIDEOS -->
   <div class="section" id="sec-videos">
     <div class="card">
       <h3>Agregar video de YouTube</h3>
-      <label>Link del video (YouTube)</label>
+      <p style="font-size:12px;color:var(--plomo);margin-bottom:16px">Sube el video a YouTube como <strong style="color:var(--plomo-claro)">"No listado"</strong> para que solo Michi pueda verlo con el link</p>
+      <label>Link de YouTube</label>
       <input class="inp" id="video-url" placeholder="https://www.youtube.com/watch?v=..."/>
       <label>Descripción (opcional)</label>
-      <input class="inp" id="video-desc" placeholder="Una canción especial para ti..."/>
+      <input class="inp" id="video-desc" placeholder="Una canción especial..."/>
       <button class="btn-save" onclick="addVideo()">➕ Agregar video</button>
     </div>
     <div class="card">
       <h3>Videos guardados</h3>
-      <div class="video-list" id="video-list">
-        <div style="color:var(--plomo);font-size:13px">Cargando...</div>
-      </div>
+      <div id="lista-videos-admin"><div style="color:var(--plomo);font-size:13px">Cargando...</div></div>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── LOGIN ──
-function doLogin() {
-  const pwd = document.getElementById('pwd-input').value;
-  if(pwd === ADMIN_PASSWORD) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
-    loadAll();
-  } else {
-    document.getElementById('login-err').textContent = 'Contraseña incorrecta';
-    document.getElementById('pwd-input').value = '';
-  }
+let emojiSel='✨';
+function selEmoji(btn){document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');emojiSel=btn.dataset.e;}
+
+function doLogin(){
+  const pwd=document.getElementById('pwd-input').value;
+  if(pwd===ADMIN_PASSWORD){document.getElementById('login-screen').style.display='none';document.getElementById('admin-panel').style.display='block';loadAll();}
+  else{document.getElementById('login-err').textContent='Contraseña incorrecta';document.getElementById('pwd-input').value='';}
 }
 
-// ── TOAST ──
-function toast(msg, type='ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
+function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.classList.remove('show'),3000);}
+function switchTab(id,btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.getElementById('sec-'+id).classList.add('active');btn.classList.add('active');}
 
-// ── TABS ──
-function switchTab(id, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
-  btn.classList.add('active');
-}
+async function loadAll(){loadCarta();loadSorpresas();loadFotos();loadVideos();}
 
-// ── CARGAR TODO ──
-async function loadAll() {
-  loadCarta(); loadFotos(); loadVideos();
+// CARTA
+async function loadCarta(){
+  const{data}=await sb.from('carta').select('*').order('created_at',{ascending:false}).limit(1).single();
+  if(data){document.getElementById('carta-titulo').value=data.titulo||'';document.getElementById('carta-contenido').value=data.contenido||'';document.getElementById('carta-firma').value=data.firma||'Siempre tuyo ❤';}
+  const{data:todas}=await sb.from('carta').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('lista-cartas-admin');
+  if(!todas||todas.length===0){el.innerHTML='<div style="color:var(--plomo);font-size:13px">Aún no hay cartas.</div>';return;}
+  el.innerHTML='';
+  todas.forEach(c=>{
+    const fecha=new Date(c.created_at).toLocaleDateString('es',{year:'numeric',month:'long'});
+    const div=document.createElement('div');div.className='lista-item';
+    div.innerHTML=`<div class="info"><div class="titulo-item">${c.titulo||'Carta sin título'}</div><div class="sub-item">${fecha}</div></div><button class="btn-del" onclick="deleteCarta('${c.id}')">Eliminar</button>`;
+    el.appendChild(div);
+  });
 }
-
-// ── CARTA ──
-async function loadCarta() {
-  const { data } = await sb.from('carta').select('*').order('created_at',{ascending:false}).limit(1).single();
-  if(data) {
-    document.getElementById('carta-titulo').value = data.titulo || 'Para ti,\nmi amor';
-    document.getElementById('carta-contenido').value = data.contenido || '';
-    document.getElementById('carta-firma').value = data.firma || 'Siempre tuyo ❤';
-  }
-}
-
-async function saveCarta() {
-  const btn = document.querySelector('#sec-carta .btn-save');
-  btn.disabled = true; btn.textContent = 'Guardando...';
-  const titulo    = document.getElementById('carta-titulo').value;
-  const contenido = document.getElementById('carta-contenido').value;
-  const firma     = document.getElementById('carta-firma').value;
-  const { data: existing } = await sb.from('carta').select('id').limit(1).single();
+async function saveCarta(){
+  const btn=document.querySelector('#sec-carta .btn-save');btn.disabled=true;btn.textContent='Guardando...';
+  const titulo=document.getElementById('carta-titulo').value;
+  const contenido=document.getElementById('carta-contenido').value;
+  const firma=document.getElementById('carta-firma').value;
+  const{data:ex}=await sb.from('carta').select('id').order('created_at',{ascending:false}).limit(1).single();
   let err;
-  if(existing) {
-    ({ error: err } = await sb.from('carta').update({titulo, contenido, firma}).eq('id', existing.id));
-  } else {
-    ({ error: err } = await sb.from('carta').insert({titulo, contenido, firma}));
-  }
-  btn.disabled = false; btn.textContent = '💾 Guardar carta';
-  err ? toast('❌ Error al guardar','err') : toast('✅ Carta guardada — ya se ve en la página');
+  if(ex){({error:err}=await sb.from('carta').update({titulo,contenido,firma}).eq('id',ex.id));}
+  else{({error:err}=await sb.from('carta').insert({titulo,contenido,firma}));}
+  btn.disabled=false;btn.textContent='💾 Guardar carta';
+  err?toast('❌ Error al guardar','err2'):toast('✅ Carta guardada');
+  loadCarta();
 }
+async function deleteCarta(id){if(!confirm('¿Eliminar esta carta?'))return;await sb.from('carta').delete().eq('id',id);toast('🗑️ Eliminada');loadCarta();}
 
-// ── FOTOS ──
-async function loadFotos() {
-  const { data } = await sb.from('fotos').select('*').order('created_at',{ascending:false});
-  const grid = document.getElementById('fotos-grid');
-  if(!data || data.length === 0) { grid.innerHTML = '<div style="color:var(--plomo);font-size:13px;grid-column:1/-1">Aún no hay fotos subidas.</div>'; return; }
-  grid.innerHTML = '';
-  data.forEach(f => {
-    const div = document.createElement('div'); div.className = 'foto-item';
-    div.innerHTML = `<img src="${f.url}" loading="lazy"/>
-      <button class="foto-delete" onclick="deleteFoto('${f.id}','${f.storage_path}')">×</button>`;
-    grid.appendChild(div);
+// SORPRESAS
+async function loadSorpresas(){
+  const{data}=await sb.from('sorpresas').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('lista-sorpresas-admin');
+  if(!data||data.length===0){el.innerHTML='<div style="color:var(--plomo);font-size:13px">Aún no hay sorpresas.</div>';return;}
+  el.innerHTML='';
+  data.forEach(s=>{
+    const fecha=new Date(s.created_at).toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});
+    const badge=s.vista?'<span class="vista-badge">Ya vista</span>':'<span class="novista-badge">Nueva ✨</span>';
+    const div=document.createElement('div');div.className='lista-item';
+    div.innerHTML=`<div style="font-size:1.5rem;flex-shrink:0">${s.emoji||'✨'}</div><div class="info"><div class="titulo-item">${s.titulo} ${badge}</div><div class="sub-item">${fecha}${s.url?' · Tiene link':''}</div></div><button class="btn-del" onclick="deleteSorpresa('${s.id}')">Eliminar</button>`;
+    el.appendChild(div);
   });
 }
+async function saveSorpresa(){
+  const titulo=document.getElementById('sor-titulo').value.trim();
+  if(!titulo){toast('Escribe un título','err2');return;}
+  const desc=document.getElementById('sor-desc').value.trim();
+  const url=document.getElementById('sor-url').value.trim();
+  const{error}=await sb.from('sorpresas').insert({titulo,descripcion:desc,emoji:emojiSel,url:url||null,vista:false});
+  if(error){toast('❌ Error al guardar','err2');return;}
+  toast('✅ Sorpresa publicada — Michi la verá al entrar ✨');
+  document.getElementById('sor-titulo').value='';
+  document.getElementById('sor-desc').value='';
+  document.getElementById('sor-url').value='';
+  loadSorpresas();
+}
+async function deleteSorpresa(id){if(!confirm('¿Eliminar esta sorpresa?'))return;await sb.from('sorpresas').delete().eq('id',id);toast('🗑️ Eliminada');loadSorpresas();}
 
-async function uploadFotos(files) {
-  if(!files.length) return;
-  const pw = document.getElementById('foto-progress-wrap');
-  const pb = document.getElementById('foto-progress');
-  pw.style.display = 'block'; pb.style.width = '0%';
-  let done = 0;
-  for(const file of files) {
-    const ext = file.name.split('.').pop();
-    const path = `fotos/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const { data: upData, error: upErr } = await sb.storage.from('media').upload(path, file, {contentType: file.type});
-    if(upErr) { toast(`❌ Error subiendo ${file.name}`,'err'); continue; }
-    const { data: urlData } = sb.storage.from('media').getPublicUrl(path);
-    await sb.from('fotos').insert({ url: urlData.publicUrl, storage_path: path, descripcion: '' });
-    done++; pb.style.width = `${(done/files.length)*100}%`;
+// FOTOS
+async function loadFotos(){
+  const{data}=await sb.from('fotos').select('*').order('created_at',{ascending:false});
+  const grid=document.getElementById('fotos-grid');
+  if(!data||data.length===0){grid.innerHTML='<div style="color:var(--plomo);font-size:13px;grid-column:1/-1">Aún no hay fotos.</div>';return;}
+  grid.innerHTML='';
+  data.forEach(f=>{const div=document.createElement('div');div.className='foto-item';div.innerHTML=`<img src="${f.url}" loading="lazy"/><button class="foto-delete" onclick="deleteFoto('${f.id}','${f.storage_path}')">×</button>`;grid.appendChild(div);});
+}
+async function uploadFotos(files){
+  if(!files.length)return;
+  const pw=document.getElementById('foto-pw');const pb=document.getElementById('foto-pb');
+  pw.style.display='block';pb.style.width='0%';let done=0;
+  for(const file of files){
+    const ext=file.name.split('.').pop();
+    const path=`fotos/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const{error:upErr}=await sb.storage.from('media').upload(path,file,{contentType:file.type});
+    if(upErr){toast(`❌ Error subiendo ${file.name}`,'err2');continue;}
+    const{data:urlData}=sb.storage.from('media').getPublicUrl(path);
+    await sb.from('fotos').insert({url:urlData.publicUrl,storage_path:path});
+    done++;pb.style.width=`${(done/files.length)*100}%`;
   }
-  pw.style.display = 'none';
-  toast(`✅ ${done} foto${done>1?'s':''} subida${done>1?'s':''}`);
-  loadFotos();
-  document.getElementById('foto-input').value = '';
+  pw.style.display='none';toast(`✅ ${done} foto${done>1?'s':''} subida${done>1?'s':''}`);
+  loadFotos();document.getElementById('foto-input').value='';
 }
+async function deleteFoto(id,path){if(!confirm('¿Eliminar esta foto?'))return;await sb.storage.from('media').remove([path]);await sb.from('fotos').delete().eq('id',id);toast('🗑️ Foto eliminada');loadFotos();}
 
-async function deleteFoto(id, path) {
-  if(!confirm('¿Eliminar esta foto?')) return;
-  await sb.storage.from('media').remove([path]);
-  await sb.from('fotos').delete().eq('id', id);
-  toast('🗑️ Foto eliminada');
-  loadFotos();
+// VIDEOS
+async function loadVideos(){
+  const{data}=await sb.from('videos').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('lista-videos-admin');
+  if(!data||data.length===0){el.innerHTML='<div style="color:var(--plomo);font-size:13px">Aún no hay videos.</div>';return;}
+  el.innerHTML='';
+  data.forEach(v=>{const div=document.createElement('div');div.className='lista-item';div.innerHTML=`<div class="info"><div class="titulo-item">${v.descripcion||'Video sin título'}</div><div class="sub-item">${v.url}</div></div><button class="btn-del" onclick="deleteVideo('${v.id}')">Eliminar</button>`;el.appendChild(div);});
 }
-
-// ── VIDEOS ──
-async function loadVideos() {
-  const { data } = await sb.from('videos').select('*').order('created_at',{ascending:false});
-  const list = document.getElementById('video-list');
-  if(!data || data.length === 0) { list.innerHTML = '<div style="color:var(--plomo);font-size:13px">Aún no hay videos agregados.</div>'; return; }
-  list.innerHTML = '';
-  data.forEach(v => {
-    const div = document.createElement('div'); div.className = 'video-list-item';
-    div.innerHTML = `<div class="url">${v.descripcion || v.url}</div>
-      <button class="btn-del" onclick="deleteVideo('${v.id}')">Eliminar</button>`;
-    list.appendChild(div);
-  });
-}
-
-async function addVideo() {
-  const url  = document.getElementById('video-url').value.trim();
-  const desc = document.getElementById('video-desc').value.trim();
-  if(!url) { toast('Ingresa un link de YouTube','err'); return; }
-  const { error } = await sb.from('videos').insert({ url, descripcion: desc });
-  if(error) { toast('❌ Error al guardar','err'); return; }
+async function addVideo(){
+  const url=document.getElementById('video-url').value.trim();
+  const desc=document.getElementById('video-desc').value.trim();
+  if(!url){toast('Ingresa un link','err2');return;}
+  const{error}=await sb.from('videos').insert({url,descripcion:desc});
+  if(error){toast('❌ Error','err2');return;}
   toast('✅ Video agregado');
-  document.getElementById('video-url').value = '';
-  document.getElementById('video-desc').value = '';
+  document.getElementById('video-url').value='';document.getElementById('video-desc').value='';
   loadVideos();
 }
-
-async function deleteVideo(id) {
-  if(!confirm('¿Eliminar este video?')) return;
-  await sb.from('videos').delete().eq('id', id);
-  toast('🗑️ Video eliminado');
-  loadVideos();
-}
+async function deleteVideo(id){if(!confirm('¿Eliminar?'))return;await sb.from('videos').delete().eq('id',id);toast('🗑️ Eliminado');loadVideos();}
 </script>
 </body>
 </html>

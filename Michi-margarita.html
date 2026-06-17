@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Michi ❤️</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #0a0014 0%, #020005 100%);
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Texto principal */
+        #texto-final {
+            position: absolute;
+            top: 15%;
+            width: 100%;
+            text-align: center;
+            font-size: 3rem;
+            color: #ffffff;
+            text-shadow: 0 0 15px #00d2ff, 0 0 30px #ff007f;
+            font-weight: bold;
+            letter-spacing: 2px;
+            z-index: 10;
+            opacity: 0; /* Empieza invisible */
+            transition: opacity 2s ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Animación exclusiva para el corazón */
+        .corazon-latido {
+            display: inline-block; /* Necesario para que pueda escalar */
+            animation: latido 1.2s infinite;
+            filter: drop-shadow(0 0 15px #ff007f); /* Brillo extra para el corazón */
+        }
+
+        @keyframes latido {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.3); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.15); }
+            60% { transform: scale(1); }
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="miMusica" src="https://pnjxhzuayhsqvlitfaak.supabase.co/storage/v1/object/public/Media/musica2.mp3" loop></audio>
+    
+    <h1 id="texto-final">Michi <span class="corazon-latido">❤️</span></h1>
+    
+    <canvas id="escena"></canvas>
+
+    <script>
+        const canvas = document.getElementById('escena');
+        const ctx = canvas.getContext('2d');
+        const musica = document.getElementById('miMusica');
+        const textoFinal = document.getElementById('texto-final');
+
+        let tiempo = 0;
+        let particulas = [];
+        let crecimientoPlanta = 0;
+        let audioIniciado = false;
+
+        // Iniciar audio al primer toque
+        document.body.addEventListener('click', () => {
+            if (!audioIniciado) {
+                musica.play().catch(e => console.log("Esperando interacción para audio"));
+                audioIniciado = true;
+            }
+        });
+
+        window.onload = () => {
+            musica.play().catch(e => console.log("Autoplay bloqueado, requiere toque"));
+            animar();
+        };
+
+        function ajustarPantalla() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        ajustarPantalla();
+        window.addEventListener('resize', ajustarPantalla);
+
+        // Partículas optimizadas
+        for(let i = 0; i < 40; i++) {
+            particulas.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                velocidad: Math.random() * 1 + 0.5,
+                tamaño: Math.random() * 4 + 1.5,
+                tipo: Math.random() > 0.4 ? 'polen' : 'corazon',
+                oscilacion: Math.random() * 100
+            });
+        }
+
+        function dibujarCorazon(ctx, x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + size / 4);
+            ctx.quadraticCurveTo(x, y, x + size / 2, y);
+            ctx.quadraticCurveTo(x + size, y, x + size, y + size / 3);
+            ctx.quadraticCurveTo(x + size, y + size * 0.7, x, y + size * 1.2);
+            ctx.quadraticCurveTo(x - size, y + size * 0.7, x - size, y + size / 3);
+            ctx.quadraticCurveTo(x - size, y, x - size / 2, y);
+            ctx.quadraticCurveTo(x, y, x, y + size / 4);
+            ctx.fill();
+        }
+
+        function dibujarMargarita(x, y, escala, progresoBloomed, rotacionY) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(1, 0.6); 
+            ctx.rotate(rotacionY);
+
+            const numPetalos = 16;
+            const longitud = 45 * escala * progresoBloomed;
+            const ancho = 10 * escala;
+
+            for (let i = 0; i < numPetalos; i++) {
+                ctx.save();
+                ctx.rotate((Math.PI * 2 / numPetalos) * i);
+                
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(-ancho, -longitud * 0.4, -ancho * 0.6, -longitud, 0, -longitud);
+                ctx.bezierCurveTo(ancho * 0.6, -longitud, ancho, -longitud * 0.4, 0, 0);
+                
+                ctx.fillStyle = '#f2f7ff';
+                ctx.fill();
+                
+                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = '#dce8f7';
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 14 * escala * (0.3 + progresoBloomed * 0.7), 0, Math.PI * 2);
+            ctx.fillStyle = '#ffcc00';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#cc9900';
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function obtenerPuntoCurva(p0, p1, p2, t) {
+            let x = Math.pow(1-t, 2)*p0.x + 2*(1-t)*t*p1.x + Math.pow(t, 2)*p2.x;
+            let y = Math.pow(1-t, 2)*p0.y + 2*(1-t)*t*p1.y + Math.pow(t, 2)*p2.y;
+            return {x, y};
+        }
+
+        function animar() {
+            tiempo += 1;
+
+            ctx.fillStyle = 'rgba(10, 0, 20, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particulas.forEach(p => {
+                p.y -= p.velocidad; 
+                p.oscilacion += 0.02;
+                let posX = p.x + Math.sin(p.oscilacion) * 15;
+
+                if (p.y < -20) {
+                    p.y = canvas.height + 20;
+                    p.x = Math.random() * canvas.width;
+                }
+
+                if (p.tipo === 'corazon') {
+                    ctx.fillStyle = 'rgba(255, 51, 153, 0.6)';
+                    dibujarCorazon(ctx, posX, p.y, p.tamaño);
+                } else {
+                    ctx.fillStyle = 'rgba(255, 230, 128, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(posX, p.y, p.tamaño / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            if (crecimientoPlanta < 1) {
+                crecimientoPlanta += 0.003; 
+            }
+
+            let origenX = canvas.width / 2;
+            let origenY = canvas.height;
+            
+            let balanceo = Math.sin(tiempo * 0.015) * 40; 
+            let p0 = { x: origenX, y: origenY };
+            let p1 = { x: origenX, y: origenY - canvas.height * 0.4 };
+            let p2 = { x: origenX + balanceo, y: origenY - canvas.height * 0.6 };
+
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineWidth = 12 * (1 - crecimientoPlanta * 0.2);
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#2d5a2d';
+
+            let tPrincipal = crecimientoPlanta;
+            let tipX, tipY;
+
+            for(let i = 0; i <= tPrincipal; i += 0.02) {
+                let punto = obtenerPuntoCurva(p0, p1, p2, i);
+                ctx.lineTo(punto.x, punto.y);
+                if (i >= tPrincipal - 0.02) { tipX = punto.x; tipY = punto.y; }
+            }
+            ctx.stroke();
+
+            if (crecimientoPlanta > 0.4) {
+                let crecimientoRama = (crecimientoPlanta - 0.4) / 0.6;
+                
+                let baseIzq = obtenerPuntoCurva(p0, p1, p2, 0.4);
+                let p2Izq = { x: baseIzq.x - 70, y: baseIzq.y - 100 };
+                
+                ctx.beginPath();
+                ctx.moveTo(baseIzq.x, baseIzq.y);
+                ctx.lineWidth = 6;
+                let tipIzqX, tipIzqY;
+                
+                for(let i = 0; i <= crecimientoRama; i += 0.05) {
+                    let punto = obtenerPuntoCurva(baseIzq, {x: baseIzq.x - 30, y: baseIzq.y - 20}, p2Izq, i);
+                    ctx.lineTo(punto.x, punto.y);
+                    if (i >= crecimientoRama - 0.05) { tipIzqX = punto.x; tipIzqY = punto.y; }
+                }
+                ctx.stroke();
+
+                let baseDer = obtenerPuntoCurva(p0, p1, p2, 0.6);
+                let p2Der = { x: baseDer.x + 80, y: baseDer.y - 90 };
+
+                ctx.beginPath();
+                ctx.moveTo(baseDer.x, baseDer.y);
+                let tipDerX, tipDerY;
+
+                for(let i = 0; i <= crecimientoRama; i += 0.05) {
+                    let punto = obtenerPuntoCurva(baseDer, {x: baseDer.x + 40, y: baseDer.y - 20}, p2Der, i);
+                    ctx.lineTo(punto.x, punto.y);
+                    if (i >= crecimientoRama - 0.05) { tipDerX = punto.x; tipDerY = punto.y; }
+                }
+                ctx.stroke();
+
+                if (crecimientoPlanta > 0.7) {
+                    let bloomT = (crecimientoPlanta - 0.7) / 0.3;
+                    if (bloomT > 1) bloomT = 1;
+
+                    dibujarMargarita(tipX, tipY, 1.2, bloomT, Math.sin(tiempo * 0.02) * 0.1);
+                    dibujarMargarita(tipIzqX, tipIzqY, 0.8, bloomT, -Math.PI/6 + Math.sin(tiempo * 0.015) * 0.1);
+                    dibujarMargarita(tipDerX, tipDerY, 0.9, bloomT, Math.PI/5 + Math.cos(tiempo * 0.02) * 0.1);
+
+                    if (bloomT === 1) {
+                        textoFinal.style.opacity = '1';
+                    }
+                }
+            }
+
+            requestAnimationFrame(animar);
+        }
+    </script>
+</body>
+</html>

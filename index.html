@@ -78,14 +78,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 #btn-gatito{position:fixed;bottom:18px;left:18px;z-index:150;width:56px;height:56px;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:floatCat 3.5s ease-in-out infinite;transition:transform .2s;}
 #btn-gatito:hover{transform:scale(1.15);}
 @keyframes floatCat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-4px) rotate(3deg)}}
+/* BOTÓN VIDEO */
+#btn-video{position:fixed;bottom:18px;right:18px;z-index:150;width:52px;height:52px;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:floatVideo 4s ease-in-out infinite;transition:transform .2s;display:none;}
+#btn-video:hover{transform:scale(1.15);}
+@keyframes floatVideo{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+/* PANEL VIDEOS */
+#panel-videos{position:fixed;inset:0;z-index:180;background:rgba(5,8,16,.95);opacity:0;pointer-events:none;transition:opacity .4s;overflow-y:auto;backdrop-filter:blur(8px);}
+#panel-videos.open{opacity:1;pointer-events:all;}
+.video-item{width:100%;border-radius:12px;overflow:hidden;border:1px solid rgba(100,130,200,.2);background:rgba(10,20,50,.4);margin-bottom:16px;}
+.video-item iframe{width:100%;height:210px;border:none;}
+.video-caption{padding:10px 16px;font-size:13px;color:var(--plomo-claro);font-style:italic;}
 
 /* CONTROL MÚSICA */
 #music-btn{position:fixed;top:18px;left:18px;z-index:150;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(10,20,50,.6);color:var(--plomo-claro);font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:all .2s;}
 #music-btn:hover{border-color:rgba(255,80,130,.4);color:#FF88AA;}
 
 /* PANELES */
-#panel-cartas,#panel-fotos,#panel-sorpresas{position:fixed;inset:0;z-index:180;background:rgba(5,8,16,.95);opacity:0;pointer-events:none;transition:opacity .4s;overflow-y:auto;backdrop-filter:blur(8px);}
-#panel-cartas.open,#panel-fotos.open,#panel-sorpresas.open{opacity:1;pointer-events:all;}
+#panel-cartas,#panel-fotos,#panel-sorpresas,#panel-videos{position:fixed;inset:0;z-index:180;background:rgba(5,8,16,.95);opacity:0;pointer-events:none;transition:opacity .4s;overflow-y:auto;backdrop-filter:blur(8px);}
+#panel-cartas.open,#panel-fotos.open,#panel-sorpresas.open,#panel-videos.open{opacity:1;pointer-events:all;}
 .panel-header{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 0;max-width:700px;margin:0 auto;}
 .panel-title{font-family:'Great Vibes',cursive;font-size:2rem;color:var(--blanco);}
 .panel-close{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--plomo-claro);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
@@ -174,6 +184,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
     <ellipse cx="38" cy="46" rx="6" ry="4" fill="#FF8C00"/>
     <path d="M44 38 Q54 30 50 20 Q48 15 44 22" fill="none" stroke="#FF8C00" stroke-width="4" stroke-linecap="round"/>
   </svg>
+</div>
+
+<!-- BOTÓN VIDEO: esquina inferior derecha -->
+<div id="btn-video" onclick="abrirVideos()">
+  <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+    <defs><radialGradient id="vg" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#6699FF"/><stop offset="100%" stop-color="#2244AA"/></radialGradient></defs>
+    <circle cx="26" cy="26" r="24" fill="url(#vg)" filter="drop-shadow(0 0 6px rgba(50,100,255,0.6))"/>
+    <!-- Triángulo play -->
+    <polygon points="20,16 20,36 38,26" fill="white" opacity="0.95"/>
+    <!-- Líneas de película -->
+    <rect x="8" y="10" width="4" height="6" rx="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="8" y="36" width="4" height="6" rx="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="40" y="10" width="4" height="6" rx="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="40" y="36" width="4" height="6" rx="1" fill="rgba(255,255,255,0.3)"/>
+  </svg>
+</div>
+
+<!-- PANEL VIDEOS -->
+<div id="panel-videos">
+  <div class="panel-header">
+    <div class="panel-title">🎬 Videos especiales</div>
+    <button class="panel-close" onclick="cerrarPanel('panel-videos')">×</button>
+  </div>
+  <div class="panel-body" id="lista-videos"><div class="loading">Cargando...</div></div>
 </div>
 
 <!-- PANTALLA REVEAL -->
@@ -329,6 +363,7 @@ function unlock(){
     document.getElementById('screen-reveal').classList.add('visible');
     document.getElementById('btn-corazon').style.display='block';
     document.getElementById('btn-gatito').style.display='block';
+    document.getElementById('btn-video').style.display='block';
     const mb=document.getElementById('music-btn');
     mb.style.display='flex';
     // Iniciar música automáticamente al desbloquear
@@ -448,10 +483,29 @@ async function abrirSorpresas(){
   });
 }
 
+// ── PANEL VIDEOS ──
+async function abrirVideos(){
+  document.getElementById('panel-videos').classList.add('open');
+  silenciarPorContenido();
+  const{data:videos}=await sb.from('videos').select('*').order('created_at',{ascending:false});
+  const lista=document.getElementById('lista-videos');
+  if(!videos||videos.length===0){lista.innerHTML='<div class="empty-msg">Aún no hay videos guardados.</div>';return;}
+  lista.innerHTML='';
+  videos.forEach(v=>{
+    const div=document.createElement('div'); div.className='video-item';
+    const embedUrl=v.url.includes('youtu.be')
+      ? v.url.replace('youtu.be/','youtube.com/embed/')
+      : v.url.replace('watch?v=','embed/');
+    div.innerHTML=`<iframe src="${embedUrl}" allowfullscreen allow="autoplay"></iframe>
+      ${v.descripcion?`<div class="video-caption">${v.descripcion}</div>`:''}`;
+    lista.appendChild(div);
+  });
+}
+
 function cerrarPanel(id){
   document.getElementById(id).classList.remove('open');
   // Solo reanuda música si se cerró la sorpresa o un video
-  if(id === 'panel-sorpresas') reanudarPorContenido();
+  if(id === 'panel-sorpresas' || id === 'panel-videos') reanudarPorContenido();
 }
 
 // ── CANVAS ──

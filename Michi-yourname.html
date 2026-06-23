@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Michi ❤️</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body, html {
+            width:100%; height:100%;
+            overflow:hidden;
+            background:#03010a;
+            font-family:'Arial Rounded MT Bold','Arial',sans-serif;
+        }
+        #videoFondo {
+            position:absolute; top:0; left:0;
+            width:100%; height:100%;
+            object-fit:cover; z-index:1;
+        }
+        canvas {
+            position:absolute; top:0; left:0;
+            width:100%; height:100%;
+            z-index:2; pointer-events:none;
+        }
+    </style>
+</head>
+<body>
+
+<video id="videoFondo" autoplay loop muted playsinline>
+    <source src="https://pnjxhzuayhsqvlitfaak.supabase.co/storage/v1/object/public/Media/video.mp4" type="video/mp4">
+</video>
+
+<audio id="miMusica" src="https://pnjxhzuayhsqvlitfaak.supabase.co/storage/v1/object/public/Media/musica3.mp3" loop></audio>
+
+<canvas id="escena"></canvas>
+
+<script>
+const canvas = document.getElementById('escena');
+const ctx = canvas.getContext('2d');
+const musica = document.getElementById('miMusica');
+const video = document.getElementById('videoFondo');
+
+let tiempo = 0;
+let particulasTexto = [];
+let opacidadTexto = 0;
+let iniciado = false;
+let audioIniciado = false;
+const TEXTO = "Michi te amo";
+
+// Al tocar la pantalla arranca música y video — igual que la margarita
+document.body.addEventListener('click', () => {
+    if (!audioIniciado) {
+        musica.play().catch(e => console.log('Audio bloqueado'));
+        video.play().catch(e => console.log('Video bloqueado'));
+        audioIniciado = true;
+        iniciado = true;
+    }
+});
+
+window.onload = () => {
+    musica.play().catch(e => console.log("Autoplay bloqueado, requiere toque"));
+    video.play().catch(e => console.log("Autoplay de video bloqueado"));
+    iniciado = true;
+    ajustarPantalla();
+    animar();
+};
+
+function ajustarPantalla() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    configurarParticulas();
+}
+window.addEventListener('resize', ajustarPantalla);
+
+function configurarParticulas() {
+    particulasTexto = [];
+    opacidadTexto = 0;
+
+    const tCanvas = document.createElement('canvas');
+    const tCtx = tCanvas.getContext('2d', { willReadFrequently: true });
+    tCanvas.width = canvas.width;
+    tCanvas.height = canvas.height;
+
+    const fontSize = Math.min(canvas.width / 5.5, 88);
+    tCtx.font = `bold ${fontSize}px 'Arial Rounded MT Bold', sans-serif`;
+    tCtx.fillStyle = 'white';
+    tCtx.textAlign = 'center';
+    tCtx.textBaseline = 'middle';
+
+    const textY = canvas.height * 0.26;
+    tCtx.fillText(TEXTO, canvas.width / 2, textY);
+
+    const imgData = tCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const paso = canvas.width < 600 ? 3 : 5;
+
+    for (let y = 0; y < canvas.height; y += paso) {
+        for (let x = 0; x < canvas.width; x += paso) {
+            const alfa = imgData[(y * canvas.width + x) * 4 + 3];
+            if (alfa > 128) {
+                particulasTexto.push({
+                    xActual: Math.random() * canvas.width,
+                    yActual: Math.random() * canvas.height,
+                    xDestino: x,
+                    yDestino: y,
+                    tam: Math.random() * 2 + 0.8,
+                    vel: 0.03 + Math.random() * 0.025,
+                    retraso: Math.random() * 160,
+                    pulsoOffset: Math.random() * Math.PI * 2
+                });
+            }
+        }
+    }
+}
+
+function animar() {
+    requestAnimationFrame(animar);
+    tiempo++;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!iniciado || particulasTexto.length === 0) return;
+
+    let textoListo = true;
+
+    particulasTexto.forEach(p => {
+        if (tiempo <= p.retraso) { textoListo = false; return; }
+
+        p.xActual += (p.xDestino - p.xActual) * p.vel;
+        p.yActual += (p.yDestino - p.yActual) * p.vel;
+
+        if (Math.abs(p.xDestino - p.xActual) > 1.5) textoListo = false;
+
+        const pulso = 0.4 + Math.abs(Math.sin(tiempo * 0.05 + p.pulsoOffset)) * 0.6;
+        const g = Math.floor(200 + Math.sin(tiempo * 0.03 + p.pulsoOffset) * 55);
+        const b = Math.floor(180 + Math.cos(tiempo * 0.04 + p.pulsoOffset) * 75);
+
+        ctx.fillStyle = `rgba(255,${g},${b},${pulso})`;
+        ctx.shadowColor = `rgba(255,180,220,${pulso * 0.6})`;
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.arc(p.xActual, p.yActual, p.tam, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    if (textoListo && particulasTexto.length > 0) {
+        if (opacidadTexto < 0.95) opacidadTexto += 0.004;
+
+        const fontSize = Math.min(canvas.width / 5.5, 88);
+        ctx.font = `bold ${fontSize}px 'Arial Rounded MT Bold', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        ctx.shadowColor = '#ffccff';
+        ctx.shadowBlur = 30;
+        ctx.fillStyle = `rgba(255, 240, 255, ${opacidadTexto})`;
+        ctx.fillText(TEXTO, canvas.width / 2, canvas.height * 0.26);
+
+        ctx.shadowColor = '#ff99cc';
+        ctx.shadowBlur = 60;
+        ctx.fillStyle = `rgba(255, 220, 240, ${opacidadTexto * 0.4})`;
+        ctx.fillText(TEXTO, canvas.width / 2, canvas.height * 0.26);
+        ctx.shadowBlur = 0;
+    }
+}
+
+animar();
+</script>
+</body>
+</html>

@@ -216,12 +216,14 @@ async function saveCarta(){
   const titulo=document.getElementById('carta-titulo').value;
   const contenido=document.getElementById('carta-contenido').value;
   const firma=document.getElementById('carta-firma').value;
-  const{data:ex}=await sb.from('carta').select('id').order('created_at',{ascending:false}).limit(1).single();
-  let err;
-  if(ex){({error:err}=await sb.from('carta').update({titulo,contenido,firma}).eq('id',ex.id));}
-  else{({error:err}=await sb.from('carta').insert({titulo,contenido,firma}));}
+  const{error:err}=await sb.from('carta').insert({titulo,contenido,firma});
   btn.disabled=false;btn.textContent='💾 Guardar carta';
-  err?toast('❌ Error al guardar','err2'):toast('✅ Carta guardada');
+  if(!err){
+    toast('✅ Carta guardada — aparece en la página de Michi');
+    document.getElementById('carta-titulo').value='';
+    document.getElementById('carta-contenido').value='';
+    document.getElementById('carta-firma').value='Siempre tuyo ❤';
+  } else { toast('❌ Error al guardar','err2'); }
   loadCarta();
 }
 async function deleteCarta(id){if(!confirm('¿Eliminar esta carta?'))return;await sb.from('carta').delete().eq('id',id);toast('🗑️ Eliminada');loadCarta();}

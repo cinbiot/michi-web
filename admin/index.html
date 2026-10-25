@@ -9,7 +9,6 @@
 <script>
 const SUPABASE_URL = 'https://pnjxhzuayhsqvlitfaak.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_GFbMfDmyqfpxa21DOp8kyQ_-rYlTNY4';
-const ADMIN_PASSWORD = '69770128Pp$';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
@@ -185,11 +184,28 @@ label:first-of-type{margin-top:0;}
 let emojiSel='✨';
 function selEmoji(btn){document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');emojiSel=btn.dataset.e;}
 
-function doLogin(){
+async function doLogin(){
   const pwd=document.getElementById('pwd-input').value;
-  if(pwd===ADMIN_PASSWORD){document.getElementById('login-screen').style.display='none';document.getElementById('admin-panel').style.display='block';loadAll();}
-  else{document.getElementById('login-err').textContent='Contraseña incorrecta';document.getElementById('pwd-input').value='';}
+  const errEl=document.getElementById('login-err');errEl.textContent='';
+  try{
+    const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({code:pwd})});
+    const d=await r.json();
+    if(!r.ok||!d.admin)throw new Error(d.error||'Código de administrador incorrecto.');
+    document.getElementById('pwd-input').value='';
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-panel').style.display='block';loadAll();
+  }catch(e){errEl.textContent=e.message||'No se pudo iniciar sesión.';}
 }
+async function tryRestoreAdmin(){
+  try{
+    const r=await fetch('/api/admin',{credentials:'same-origin',cache:'no-store'});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d.admin){document.getElementById('login-screen').style.display='none';document.getElementById('admin-panel').style.display='block';loadAll();}
+  }catch(_){}
+}
+tryRestoreAdmin();
+
 
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.classList.remove('show'),3000);}
 function switchTab(id,btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.getElementById('sec-'+id).classList.add('active');btn.classList.add('active');}

@@ -9,7 +9,6 @@
 <script>
 const SUPABASE_URL = 'https://pnjxhzuayhsqvlitfaak.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_GFbMfDmyqfpxa21DOp8kyQ_-rYlTNY4';
-const ADMIN_PASSWORD = '69770128Pp$';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
@@ -124,9 +123,47 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 .sorpresa-item-fecha{font-size:11px;color:var(--plomo);}
 .empty-msg{color:var(--plomo);font-size:13px;text-align:center;padding:40px;opacity:.5;}
 .loading{color:var(--plomo);font-size:13px;text-align:center;padding:20px;}
+
+/* Entrada privada — sin alterar la portada original */
+#private-entry{position:fixed;inset:0;z-index:900;background:radial-gradient(ellipse at 30% 25%,#291025,#050810 70%);display:flex;align-items:center;justify-content:center;padding:22px;color:#f5eaf6}
+#private-entry[hidden]{display:none!important}
+.private-card{width:min(420px,100%);padding:36px 26px;text-align:center;border:1px solid rgba(255,155,202,.25);border-radius:24px;background:rgba(12,14,31,.88);box-shadow:0 24px 80px rgba(0,0,0,.4);font-family:Montserrat,Arial,sans-serif}
+.private-card h2{font-family:'Great Vibes',cursive;font-size:3.2rem;font-weight:400;margin-bottom:8px;color:#fbedff}
+.private-card p{color:#aeb9d4;font-size:13px;margin-bottom:20px;line-height:1.7}
+.private-input{display:block;width:100%;margin:12px auto;border-radius:12px;padding:13px 15px;background:#171c32;border:1px solid #303650;color:#fff;font-size:15px}
+.private-enter{width:100%;padding:14px;border-radius:50px;background:linear-gradient(120deg,#bb154b,#354ba8);color:#fff;border:0;font-size:15px;cursor:pointer;margin-top:10px}
+#private-error{color:#ff9cb5;min-height:20px;font-size:12px;margin:8px 0 0}
+#btn-chat{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:150;display:none;align-items:center;gap:8px;border:1px solid #e0679c77;color:#ffb4d7;background:#11192ee8;border-radius:999px;padding:11px 18px;font-size:13px;cursor:pointer;box-shadow:0 4px 20px #0007;white-space:nowrap}
+#panel-chat{position:fixed;inset:0;z-index:240;background:rgba(5,8,16,.98);display:none;flex-direction:column}
+#panel-chat.open{display:flex}
+#panel-chat header{padding:12px 15px;display:flex;justify-content:space-between;align-items:center;color:#fbeafa;background:#0c1124;border-bottom:1px solid #252c48}
+#panel-chat header button{background:transparent;border:1px solid #39405b;color:#e6eafa;border-radius:100%;width:34px;height:34px;cursor:pointer}
+#panel-chat iframe{border:0;width:100%;flex:1;min-height:0}
+#private-logout{position:fixed;top:19px;left:72px;z-index:150;display:none;color:#aab6d7;background:#0a143bbb;border:1px solid #263650;border-radius:30px;padding:10px;font-size:12px;cursor:pointer}
+@media(max-width:570px){.private-card{padding:30px 20px}.private-card h2{font-size:2.8rem}#btn-chat{bottom:12px}}
 </style>
 </head>
 <body>
+
+
+<!-- Entrada con código compartido validado en servidor (Vercel). -->
+<section id="private-entry" aria-label="Acceso a la página privada">
+ <div class="private-card">
+  <div style="font-size:28px;margin-bottom:8px">🌼 ❤️ 🌼</div>
+  <h2>Para mi Michi</h2>
+  <form id="private-form">
+   <input class="private-input" id="private-code" type="password" autocomplete="off" required placeholder="Código de acceso" aria-label="Código privado" />
+   <button class="private-enter" id="private-submit" type="submit">Entrar ❤️</button>
+  </form>
+  <div id="private-error" role="alert"></div>
+ </div>
+</section>
+<button id="private-logout" type="button" title="Cerrar sesión">Salir</button>
+<button id="btn-chat" type="button" onclick="abrirChat()">💬 Nuestro chat</button>
+<div id="panel-chat" aria-label="Chat de Michi y Coquito">
+ <header><strong>💌 Nuestro chat</strong><button onclick="cerrarChat()" aria-label="Cerrar chat">×</button></header>
+ <iframe id="chat-frame" title="Nuestro chat" loading="lazy"></iframe>
+</div>
 
 <!-- AUDIO FONDO -->
 <audio id="bg-music" src="https://pnjxhzuayhsqvlitfaak.supabase.co/storage/v1/object/public/Media/Musicapag.mp3" loop preload="auto"></audio>
@@ -265,7 +302,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL CARTAS -->
 <div id="panel-cartas">
   <div class="panel-header">
-    <div class="panel-title">💌 Mis cartas</div>
+    <div class="panel-title">💌 Cartas para Michi</div>
     <button class="panel-close" onclick="cerrarPanel('panel-cartas')">×</button>
   </div>
   <div class="panel-body" id="lista-cartas"><div class="loading">Cargando...</div></div>
@@ -313,6 +350,46 @@ if(IS_PREVIEW){
   document.body.appendChild(badge);
 }
 
+
+// Código de acceso compartido: se valida con una función de Vercel.
+// Nunca incrustamos aquí el código ni una clave secreta de Supabase.
+let michiIdentity=null;
+async function initPrivateAccess(){
+  try{
+    const res=await fetch('/api/auth',{credentials:'same-origin',cache:'no-store'});
+    const obj=await res.json();
+    michiIdentity=obj.authenticated?{authorized:true}:null;
+  }catch(_){michiIdentity=null;}
+  document.getElementById('private-entry').hidden=!!michiIdentity;
+}
+document.getElementById('private-form').addEventListener('submit',async(e)=>{
+  e.preventDefault();
+  const btn=document.getElementById('private-submit'),err=document.getElementById('private-error');
+  const code=document.getElementById('private-code').value;
+  btn.disabled=true;btn.textContent='Comprobando...';err.textContent='';
+  try{
+    const res=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({code})});
+    const data=await res.json();
+    if(!res.ok||!data.authenticated)throw new Error(data.error||'Código incorrecto.');
+    michiIdentity={authorized:true};
+    document.getElementById('private-code').value='';
+    document.getElementById('private-entry').hidden=true;
+  }catch(ex){err.textContent=ex.message||'No se pudo verificar el código.';}
+  finally{btn.disabled=false;btn.textContent='Entrar ❤️';}
+});
+document.getElementById('private-logout').addEventListener('click',async()=>{
+  await fetch('/api/auth',{method:'DELETE',credentials:'same-origin'});
+  location.reload();
+});
+initPrivateAccess();
+function abrirChat(){
+  silenciarPorContenido();
+  const frame=document.getElementById('chat-frame');
+  if(!frame.getAttribute('src'))frame.src='chat.html';
+  document.getElementById('panel-chat').classList.add('open');
+}
+function cerrarChat(){document.getElementById('panel-chat').classList.remove('open');reanudarPorContenido();}
+
 // ── MÚSICA ──
 const bgMusic = document.getElementById('bg-music');
 bgMusic.volume = 0.35;
@@ -345,6 +422,7 @@ for(let i=0;i<8;i++) setTimeout(spawnDaisy,i*200);
 // ── HUELLA ──
 let scanning=false;
 function startScan(){
+  if(!michiIdentity){document.getElementById('private-entry').hidden=false;return;}
   if(scanning)return; scanning=true;
   const hint=document.getElementById('hint');
   hint.textContent='Verificando...';
@@ -364,6 +442,8 @@ function unlock(){
     document.getElementById('btn-corazon').style.display='block';
     document.getElementById('btn-gatito').style.display='block';
     document.getElementById('btn-video').style.display='block';
+    document.getElementById('btn-chat').style.display='flex';
+    document.getElementById('private-logout').style.display='block';
     const mb=document.getElementById('music-btn');
     mb.style.display='flex';
     // Iniciar música automáticamente al desbloquear
@@ -385,8 +465,8 @@ async function loadContent(){
     const el=document.getElementById('carta-container');
     if(carta){
       el.className='carta-box';
-      el.innerHTML=carta.contenido.split('\n\n').map(p=>`<p>${p}</p>`).join('');
-      if(carta.titulo) document.getElementById('page-title').innerHTML=carta.titulo.replace('\n','<br/>');
+      el.innerHTML=carta.contenido.split('\n\n').map(p=>{const el=document.createElement('p');el.textContent=p;return el.outerHTML;}).join('');
+      if(carta.titulo) document.getElementById('page-title').textContent=carta.titulo;
       if(carta.firma) document.getElementById('firma-txt').textContent=carta.firma;
     } else {
       el.className='carta-box';
@@ -437,7 +517,7 @@ async function abrirPanelCartas(){
   lista.innerHTML='';
   cartas.forEach(c=>{
     const fecha=new Date(c.created_at).toLocaleDateString('es',{year:'numeric',month:'long'});
-    const preview=c.contenido?c.contenido.slice(0,60)+'...':'';
+    const preview=c.titulo||'Carta sin título';
     const div=document.createElement('div'); div.className='carta-item';
     div.innerHTML=`<div class="carta-fecha">${fecha}</div><div class="carta-preview-txt">${preview}</div><div class="carta-arrow">›</div>`;
     div.onclick=()=>abrirCarta(c);
@@ -449,7 +529,7 @@ function abrirCarta(c){
   const fecha=new Date(c.created_at).toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});
   document.getElementById('ca-titulo').textContent=c.titulo||'Carta de amor';
   document.getElementById('ca-fecha').textContent=fecha;
-  document.getElementById('ca-contenido').innerHTML=c.contenido.split('\n\n').map(p=>`<p>${p}</p>`).join('');
+  document.getElementById('ca-contenido').innerHTML=c.contenido.split('\n\n').map(p=>{const el=document.createElement('p');el.textContent=p;return el.outerHTML;}).join('');
   document.getElementById('ca-firma').textContent=c.firma||'Con todo mi amor ❤';
   document.getElementById('carta-abierta').classList.add('open');
 }

@@ -1,9 +1,24 @@
+
 {
-  "version": 2,
-  "builds": [{ "src": "**/*.html", "use": "@vercel/static" }],
-  "routes": [
-    { "src": "/admin", "dest": "/admin/index.html" },
-    { "src": "/admin/", "dest": "/admin/index.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/admin/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
   ]
 }

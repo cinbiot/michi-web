@@ -10,7 +10,14 @@ module.exports=async function handler(req,res){
  if(req.method!=='POST')return C.fail(res,405,'Método no permitido.');
  if(!C.sameOrigin(req))return C.fail(res,403,'Solicitud no permitida.');
  const conf=C.config();
- if(!conf.code||!conf.secret||conf.secret.length<32)return C.fail(res,503,'Falta configurar el acceso en Vercel.');
+ if (!conf.code)
+  return C.fail(res, 503, 'No se recibe MICHI_ACCESS_CODE.');
+
+if (!conf.secret)
+  return C.fail(res, 503, 'No se recibe MICHI_SESSION_SECRET.');
+
+if (conf.secret.length < 32)
+  return C.fail(res, 503, 'MICHI_SESSION_SECRET debe tener al menos 32 caracteres.');
  let body;try{body=C.jsonBody(req);}catch(_){return C.fail(res,400,'Solicitud incorrecta.');}
  if(!C.safeCompare(body.code,conf.code))return C.fail(res,401,'Código incorrecto.');
  res.setHeader('Set-Cookie',C.cookie('michi_session',C.token('access'),7*24*3600));

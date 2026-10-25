@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Nuestro chat ❤️</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{color-scheme:dark;--b:#070b17;--p:#10172b;--border:#26304f;--text:#f1eafb;--sub:#9baccc;--rose:#ff8cb8}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Montserrat,'Segoe UI',Arial,sans-serif;background:var(--b);color:var(--text)}
+body{display:flex;flex-direction:column;overflow:hidden}header{height:68px;flex-shrink:0;display:flex;align-items:center;gap:13px;padding:10px 18px;background:#101629;border-bottom:1px solid var(--border)}
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#a41748,#314da8);font-size:23px;flex-shrink:0}
+header h1{font-size:17px;line-height:1.2;margin:0;font-weight:650}header p{font-size:11px;color:#8fa0c4;margin:4px 0 0}
+#who{margin-left:auto;color:var(--rose);font-size:12px}#messages{flex:1;overflow:auto;padding:20px max(18px,calc((100vw - 760px)/2));display:flex;flex-direction:column;gap:10px;background:radial-gradient(ellipse at 20% 10%,#201126 0%,transparent 50%),radial-gradient(ellipse at 80% 70%,#0b1734 0%,transparent 55%),#060913}
+.date{align-self:center;color:#a9acc6;background:#14182be8;border:1px solid #283351;padding:5px 13px;border-radius:50px;font-size:11px;margin:7px 0}
+.bubble{max-width:min(80%,410px);border:1px solid #293854;border-radius:18px;padding:10px 13px 8px;background:#131a33;align-self:flex-start;word-wrap:break-word;overflow-wrap:anywhere;box-shadow:0 3px 14px #0003}
+.bubble.mine{align-self:flex-end;background:#3e1937;border-color:#792b55;border-bottom-right-radius:5px}
+.bubble.other{border-bottom-left-radius:5px}.sender{font-size:11px;color:#ffabce;font-weight:600;margin:0 0 5px}.msg-text{white-space:pre-wrap;font-size:14px;line-height:1.55}.stamp{display:block;text-align:right;font-size:10px;color:#9fabc3;margin-top:5px}.attachment{margin-top:7px;display:block;color:#fdd1ea;text-decoration:none;font-size:12px;max-width:290px}.attachment img{width:100%;max-height:250px;object-fit:cover;border-radius:10px;display:block}.attachment video{width:100%;max-height:240px}.attachment audio{width:100%;max-width:290px}
+#older-wrap{display:flex;justify-content:center;padding:6px 0 12px;flex-shrink:0}
+#older-wrap[hidden]{display:none}
+#older{border:1px solid #5b4770;background:#241b37;color:#ffcee5;border-radius:22px;padding:9px 17px;cursor:pointer;font-size:12px}
+.msg-actions{display:flex;justify-content:flex-end;margin-top:3px;gap:7px}
+.msg-delete{border:0;background:transparent;color:#b3a8be;font-size:11px;padding:3px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.msg-delete:hover{color:#ff8cb8}
+#sending{font-size:11px;color:#c3abc7;min-height:17px;text-align:center}
+#sendform{background:#0f1426;border-top:1px solid #29304a;flex-shrink:0;padding:9px max(12px,calc((100vw - 760px)/2)) calc(9px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:end}
+#message{resize:none;min-height:43px;max-height:118px;flex:1;line-height:1.45;padding:11px 13px;border:1px solid #344163;border-radius:20px;color:#f4eafa;background:#1b233c;outline:none;font-size:14px;font-family:inherit}
+button.iconbtn{width:43px;height:43px;display:grid;place-items:center;background:#1e2844;color:#ffd7e6;border:1px solid #354268;border-radius:50%;cursor:pointer;font-size:19px;flex-shrink:0}
+button.send{background:linear-gradient(135deg,#bc2454,#4259b1);border:0}button:disabled{opacity:.45;cursor:default}
+#locked{position:fixed;inset:0;background:#060913;z-index:10;display:grid;place-items:center;padding:22px;text-align:center;color:#ced9f5}
+#locked[hidden]{display:none}#locked p{max-width:360px;line-height:1.7}#locked a{color:#ff8cb8}
+@media(max-width:540px){.bubble{max-width:90%}header h1{font-size:15px}#messages{padding:14px 12px}}
+.identity-choice{padding:9px 12px;margin:0 3px;border:1px solid #87415f;border-radius:20px;color:#ffcee3;background:#38192c;cursor:pointer}
+#who{cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+</style>
+</head>
+<body>
+<div id="locked"><div><div style="font-size:42px">💌</div><h2>Comprobando acceso...</h2><p>Introduce el código en la página principal para entrar.</p><a href="/">Volver al inicio</a></div></div>
+<header><div class="avatar">🐱</div><div><h1>Michi & Coquito ❤️</h1><p>Guardados hasta que los borremos 💌</p></div><span id="who"></span></header>
+<div id="identity" hidden style="padding:10px;text-align:center;background:#101629;border-bottom:1px solid #26304f;color:#ffcfdf">¿Quién está escribiendo? <button type="button" data-name="Michi" class="identity-choice">🐱 Michi</button> <button type="button" data-name="Coquito" class="identity-choice">❤️ Coquito</button></div>
+<main id="messages" aria-label="Mensajes"></main>
+<div id="sending" aria-live="polite"></div>
+<form id="sendform">
+ <input type="file" id="file" accept="image/*,audio/*,video/*,.pdf,.txt,.doc,.docx" hidden />
+ <button class="iconbtn" id="attach" type="button" aria-label="Adjuntar archivo" title="Subir foto o archivo">＋</button>
+ <textarea id="message" placeholder="Escribe algo bonito..." rows="1" maxlength="4000" aria-label="Mensaje"></textarea>
+ <button class="iconbtn send" id="send" type="submit" aria-label="Enviar">➤</button>
+</form>
+<script>
+// Chat conectado a funciones protegidas de Vercel. Los secretos permanecen en el servidor.
+// Los nombres son apodos elegidos; una clave compartida no verifica identidad individual.
+const sb=supabase.createClient('https://pnjxhzuayhsqvlitfaak.supabase.co','sb_publishable_GFbMfDmyqfpxa21DOp8kyQ_-rYlTNY4');
+const list=document.getElementById('messages'),box=document.getElementById('message');
+let myName=localStorage.getItem('michi-chat-nombre'),busy=false;
+const entries=new Map();
+let hasOlder=false, rendering=false, loading=false, loaded=false;
+function setStatus(s){document.getElementById('sending').textContent=s||'';}
+function dateLabel(s){return new Date(s).toLocaleDateString('es-BO',{year:'numeric',month:'long',day:'numeric'});}
+function nearBottom(){return list.scrollHeight-list.scrollTop-list.clientHeight<180;}
+function scrollBottom(){list.scrollTop=list.scrollHeight;}
+function addEl(parent,tag,cls,txt){const el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.textContent=txt;parent.appendChild(el);return el;}
+function chooseIdentity(){
+ const picker=document.getElementById('identity');picker.hidden=false;
+ document.querySelectorAll('.identity-choice').forEach(b=>b.onclick=()=>{
+  myName=b.dataset.name;localStorage.setItem('michi-chat-nombre',myName);picker.hidden=true;
+  document.getElementById('who').textContent=myName+' · cambiar';
+  renderAll(false);
+ });
+}
+async function api(url,options){
+ const res=await fetch(url,{credentials:'same-origin',cache:'no-store',...options});
+ let data={};try{data=await res.json()}catch(_){ }
+ if(!res.ok)throw new Error(data.error||'Error de conexión.');return data;
+}
+function sortedMessages(){return [...entries.values()].sort((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));}
+async function renderMessage(parent,m){
+ const mine=m.nombre===myName;
+ const bubble=addEl(parent,'article','bubble '+(mine?'mine':'other'));
+ if(!mine)addEl(bubble,'div','sender',m.nombre);
+ if(m.contenido)addEl(bubble,'div','msg-text',m.contenido);
+ if(m.archivo_path){
+  const a=addEl(bubble,'a','attachment','📎 '+(m.archivo_nombre||'Archivo'));
+  a.target='_blank';a.rel='noopener noreferrer';
+  const url='/api/chat-open?path='+encodeURIComponent(m.archivo_path);
+  a.href=url;
+  const mime=m.archivo_tipo||'';
+  if(mime.startsWith('image/')){const img=document.createElement('img');img.loading='lazy';img.src=url;img.alt=m.archivo_nombre||'Imagen';a.replaceChildren(img);}
+  else if(mime.startsWith('audio/')){const aud=document.createElement('audio');aud.src=url;aud.controls=true;a.appendChild(aud);}
+  else if(mime.startsWith('video/')){const vid=document.createElement('video');vid.src=url;vid.controls=true;vid.preload='metadata';a.appendChild(vid);}
+ }
+ const foot=addEl(bubble,'div','msg-actions');
+ addEl(foot,'time','stamp',new Date(m.created_at).toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'}));
+ const remove=addEl(foot,'button','msg-delete','Eliminar');
+ remove.type='button';remove.setAttribute('aria-label','Eliminar mensaje para ambos');
+ remove.onclick=()=>deleteMessage(m.id);
+}
+async function renderAll(preserve=true){
+ if(rendering)return;
+ rendering=true;
+ const auto=nearBottom(), oldHeight=list.scrollHeight,oldTop=list.scrollTop;
+ try{
+  const frag=document.createDocumentFragment();
+  const top=addEl(frag,'div','');top.id='older-wrap';top.hidden=!hasOlder;
+  const older=addEl(top,'button','','↑ Ver mensajes anteriores');older.id='older';older.type='button';older.onclick=loadOlder;
+  let lastDate='';
+  for(const m of sortedMessages()){
+   const d=dateLabel(m.created_at);
+   if(d!==lastDate){addEl(frag,'div','date',d);lastDate=d;}
+   await renderMessage(frag,m);
+  }
+  list.replaceChildren(frag);
+  if(!preserve || auto)scrollBottom();
+  else list.scrollTop=oldTop+(list.scrollHeight-oldHeight);
+ }finally{rendering=false;}
+}
+async function loadMessages(){
+ if(loading||rendering)return;
+ loading=true;
+ try{
+  const {messages,hasMore}=await api('/api/chat');
+  if(!loaded){hasOlder=hasMore;loaded=true;}
+  let changed=false;
+  // Detecta mensajes eliminados desde el otro teléfono dentro de la página reciente.
+  if(messages.length){
+   const min=messages[0].created_at;
+   const recentIds=new Set(messages.map(m=>m.id));
+   for(const [id,m] of entries)if(m.created_at>=min&&!recentIds.has(id)){entries.delete(id);changed=true;}
+  }else if(!hasOlder&&entries.size){entries.clear();changed=true;}
+  for(const m of messages)if(!entries.has(m.id)){entries.set(m.id,m);changed=true;}
+  if(changed||!list.children.length)await renderAll();
+  setStatus('');
+ }catch(e){setStatus(e.message);}
+ finally{loading=false;}
+}
+async function loadOlder(){
+ if(loading||rendering||!hasOlder)return;
+ const sorted=sortedMessages();if(!sorted.length)return;
+ loading=true;setStatus('Cargando mensajes antiguos...');
+ try{
+  const cursor=encodeURIComponent(sorted[0].created_at);
+  const {messages,hasMore}=await api('/api/chat?before='+cursor);
+  hasOlder=hasMore;
+  for(const m of messages)entries.set(m.id,m);
+  await renderAll(true);setStatus('');
+ }catch(e){setStatus(e.message);}
+ finally{loading=false;}
+}
+async function deleteMessage(id){
+ if(!confirm('¿Eliminar este mensaje para los dos? Se borrará de la conversación y no se podrá recuperar desde el chat.'))return;
+ try{
+  const d=await api('/api/chat?id='+encodeURIComponent(id),{method:'DELETE'});
+  entries.delete(id);
+  await renderAll(true);
+  setStatus(d.fileRemoved===false?'El mensaje se eliminó, pero hubo un problema al eliminar su archivo.':'Mensaje eliminado para ambos.');
+ }catch(e){setStatus('No se pudo eliminar: '+e.message);}
+}
+async function sendMessage(){
+ if(busy)return;
+ if(!myName){chooseIdentity();setStatus('Primero elige Michi o Coquito.');return;}
+ const content=box.value.trim(), file=document.getElementById('file').files[0];
+ if(!content&&!file)return;
+ if(file&&file.size>10*1024*1024){setStatus('El archivo supera 10 MB.');return;}
+ busy=true;document.getElementById('send').disabled=true;setStatus('Enviando...');
+ try{
+  let path=null;
+  if(file){
+    const ticket=await api('/api/chat-upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:file.name,type:file.type,size:file.size})});
+    const uploaded=await sb.storage.from('chat-archivos').uploadToSignedUrl(ticket.path,ticket.token,file,{contentType:file.type||'application/octet-stream'});
+    if(uploaded.error)throw uploaded.error;
+    path=ticket.path;
+  }
+  await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName,contenido:content,archivo_path:path,archivo_nombre:file?.name||null,archivo_tipo:file?.type||null})});
+  box.value='';document.getElementById('file').value='';setStatus('');await loadMessages();scrollBottom();
+ }catch(e){setStatus('No se pudo enviar: '+(e.message||'Error'));}
+ finally{busy=false;document.getElementById('send').disabled=false;}
+}
+async function boot(){
+ try{
+  const r=await api('/api/auth');
+  if(!r.authenticated)throw new Error('Primero ingresa el código en la página principal.');
+  document.getElementById('locked').hidden=true;
+  document.getElementById('who').textContent=myName?myName+' · cambiar':'Elegir nombre';
+  document.getElementById('who').onclick=chooseIdentity;
+  if(!['Michi','Coquito'].includes(myName)){myName=null;chooseIdentity();}
+  await loadMessages();scrollBottom();
+  // Mensajes guardados hasta su eliminación manual; consulta cada 5 segundos.
+  setInterval(()=>{if(!document.hidden)loadMessages()},5000);
+ }catch(e){document.querySelector('#locked h2').textContent='Acceso restringido';document.querySelector('#locked p').textContent=e.message;}
+}
+document.getElementById('sendform').addEventListener('submit',e=>{e.preventDefault();sendMessage()});
+document.getElementById('attach').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=()=>{const f=document.getElementById('file').files[0];setStatus(f?'Adjunto: '+f.name+' · máximo 10 MB':'');};
+box.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+boot();
+</script>
+</body>
+</html>

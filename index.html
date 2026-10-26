@@ -120,7 +120,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 #panel-videos{position:fixed;inset:0;z-index:180;background:rgba(5,8,16,.95);opacity:0;pointer-events:none;transition:opacity .4s;overflow-y:auto;backdrop-filter:blur(8px);}
 #panel-videos.open{opacity:1;pointer-events:all;}
 .video-item{width:100%;border-radius:12px;overflow:hidden;border:1px solid rgba(100,130,200,.2);background:rgba(10,20,50,.4);margin-bottom:16px;}
-.video-item iframe{width:100%;height:210px;border:none;}
+.video-item iframe{display:block;width:100%;height:auto;aspect-ratio:16 / 9;border:none;background:#000;}
+/* Visor de video Michi V8: amplía el reproductor sin cambiar su URL ni sus datos. */
+.video-herramientas{display:flex;justify-content:flex-end;padding:9px 11px;background:rgba(11,14,30,.85);}
+.video-ampliar-btn{font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#ffd3e7;background:rgba(106,39,82,.46);border:1px solid rgba(247,151,195,.55);border-radius:999px;min-height:38px;padding:8px 14px;cursor:pointer;}
+.video-ampliar-btn:hover,.video-ampliar-btn:focus-visible{background:rgba(135,50,103,.72);outline:2px solid rgba(255,185,220,.85);outline-offset:2px;}
+.video-item.video-ampliado{position:fixed;inset:0;z-index:500;box-sizing:border-box;width:100%;height:100vh;height:100dvh;margin:0;padding:70px 12px 16px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;border:0;border-radius:0;background:rgba(3,5,13,.99);}
+.video-item.video-ampliado .video-herramientas{position:absolute;top:max(12px, env(safe-area-inset-top));right:max(12px, env(safe-area-inset-right));z-index:2;padding:0;background:transparent;}
+.video-item.video-ampliado iframe{width:min(96vw, calc((100dvh - 115px) * 1.7777778));height:auto;aspect-ratio:16 / 9;max-height:calc(100dvh - 115px);border-radius:12px;background:#000;box-shadow:0 16px 55px rgba(0,0,0,.5);}
+.video-item.video-ampliado .video-caption{flex-shrink:0;max-width:96vw;text-align:center;padding:10px 6px 0;}
+@media(max-width:600px){.video-item.video-ampliado{padding:65px 8px 14px}.video-item.video-ampliado iframe{width:min(97vw, calc((100dvh - 105px) * 1.7777778));max-height:calc(100dvh - 105px)}}
 .video-caption{padding:10px 16px;font-size:13px;color:var(--plomo-claro);font-style:italic;}
 
 /* CONTROL MÚSICA */
@@ -600,6 +609,27 @@ async function abrirSorpresas(){
 }
 
 // ── PANEL VIDEOS ──
+// El iframe permanece en la misma tarjeta; así no se altera el enlace de Drive/YouTube.
+let videoAmpliado = null;
+function reducirVideo(){
+  if(!videoAmpliado) return;
+  const item = videoAmpliado;
+  videoAmpliado = null;
+  item.classList.remove('video-ampliado');
+  const boton = item.querySelector('.video-ampliar-btn');
+  if(boton){boton.textContent='⛶ Ampliar video';boton.setAttribute('aria-expanded','false');}
+}
+function alternarTamanoVideo(item){
+  if(videoAmpliado === item){reducirVideo();return;}
+  reducirVideo();
+  videoAmpliado = item;
+  item.classList.add('video-ampliado');
+  const boton = item.querySelector('.video-ampliar-btn');
+  if(boton){boton.textContent='↙ Reducir video';boton.setAttribute('aria-expanded','true');boton.focus();}
+}
+document.addEventListener('keydown',event=>{
+  if(event.key === 'Escape' && videoAmpliado){reducirVideo();}
+});
 async function abrirVideos(){
   document.getElementById('panel-videos').classList.add('open');
   silenciarPorContenido();
@@ -612,13 +642,20 @@ async function abrirVideos(){
     const embedUrl=v.url.includes('youtu.be')
       ? v.url.replace('youtu.be/','youtube.com/embed/')
       : v.url.replace('watch?v=','embed/');
-    div.innerHTML=`<iframe src="${embedUrl}" allowfullscreen allow="autoplay"></iframe>
+    div.innerHTML=`<iframe src="${embedUrl}" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
       ${v.descripcion?`<div class="video-caption">${v.descripcion}</div>`:''}`;
+    const barra=document.createElement('div');barra.className='video-herramientas';
+    const boton=document.createElement('button');
+    boton.type='button';boton.className='video-ampliar-btn';
+    boton.textContent='⛶ Ampliar video';boton.setAttribute('aria-expanded','false');
+    boton.addEventListener('click',()=>alternarTamanoVideo(div));
+    barra.appendChild(boton);div.prepend(barra);
     lista.appendChild(div);
   });
 }
 
 function cerrarPanel(id){
+  if(id === 'panel-videos') reducirVideo();
   document.getElementById(id).classList.remove('open');
   // Solo reanuda música si se cerró la sorpresa o un video
   if(id === 'panel-sorpresas' || id === 'panel-videos') reanudarPorContenido();

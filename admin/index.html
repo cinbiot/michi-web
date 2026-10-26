@@ -338,7 +338,17 @@ async function loadFotos(){
   const grid=document.getElementById('fotos-grid');
   if(!data||data.length===0){grid.innerHTML='<div style="color:var(--plomo);font-size:13px;grid-column:1/-1">Aún no hay fotos.</div>';return;}
   grid.innerHTML='';
-  data.forEach(f=>{const div=document.createElement('div');div.className='foto-item';div.innerHTML=`<img src="${f.url}" loading="lazy"/><button class="foto-delete" onclick="deleteFoto('${f.id}','${f.storage_path}')">×</button>`;grid.appendChild(div);});
+  data.forEach(f=>{
+    const div=document.createElement('div');div.className='foto-item';
+    const img=document.createElement('img');
+    img.src='/api/foto-ver?id='+encodeURIComponent(f.id);
+    img.loading='lazy';img.alt='Fotografía de nuestros momentos';
+    img.onerror=()=>{img.removeAttribute('src');img.alt='Foto no disponible: revisar archivo en Supabase';};
+    const boton=document.createElement('button');boton.className='foto-delete';boton.type='button';
+    boton.textContent='×';boton.setAttribute('aria-label','Eliminar fotografía');
+    boton.addEventListener('click',()=>deleteFoto(f.id,f.storage_path));
+    div.append(img,boton);grid.appendChild(div);
+  });
 }
 async function uploadFotos(files){
   if(!files.length)return;

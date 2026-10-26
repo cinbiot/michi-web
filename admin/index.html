@@ -378,5 +378,7 @@ async function addVideo(){
 }
 async function deleteVideo(id){if(!confirm('¿Eliminar?'))return;await sb.from('videos').delete().eq('id',id);toast('🗑️ Eliminado');loadVideos();}
 </script>
+<!-- Amplía fotografías sin alterar cartas, chat ni Supabase. -->
+<script defer src="/js/visor-fotos.js"></script>
 </body>
 </html>

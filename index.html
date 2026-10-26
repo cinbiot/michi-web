@@ -577,7 +577,8 @@ async function abrirFotos(){
   if(!fotos||fotos.length===0){grid.innerHTML='<div class="empty-msg">Aún no hay fotos guardadas.</div>';return;}
   grid.innerHTML='';
   fotos.forEach(f=>{
-    const img=document.createElement('img'); img.src=f.url; img.alt=''; img.loading='lazy';
+    const img=document.createElement('img'); img.src='/api/foto-ver?id='+encodeURIComponent(f.id); img.alt='Fotografía de nuestros momentos'; img.loading='lazy';
+    img.onerror=()=>{img.removeAttribute('src');img.alt='No se puede mostrar esta foto. Comprueba el archivo en Supabase Storage.';};
     grid.appendChild(img);
   });
 }

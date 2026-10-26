@@ -5,12 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Admin — Panel de amor 🔐</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://pnjxhzuayhsqvlitfaak.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_GFbMfDmyqfpxa21DOp8kyQ_-rYlTNY4';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Esta API reemplaza las consultas públicas del navegador por llamadas privadas a Vercel.
+// Conserva la interfaz sb.from(...) que ya utilizan las cartas y las sorpresas.
+const sb = {
+  from(tabla){
+    const q={tabla,operation:'select',eq:null,valor:null,limite:null,single:false,payload:null};
+    const chain={
+      select(){return chain;},order(){return chain;},
+      limit(n){q.limite=n;return chain;},
+      single(){q.single=true;return chain;},
+      eq(k,v){q.eq=k;q.valor=v;return chain;},
+      insert(value){q.operation='insertar';q.payload=value;return chain;},
+      update(value){q.operation='marcar_vista';q.payload=value;return chain;},
+      delete(){q.operation='eliminar';return chain;},
+      then(resolve,reject){
+        (async()=>{
+          try {
+            let r;
+            if(q.operation==='select'){
+              const params=new URLSearchParams({tabla:q.tabla});
+              if(q.limite)params.set('limite',String(q.limite));
+              if(q.eq){params.set('eq',q.eq);params.set('valor',String(q.valor));}
+              r=await fetch('/api/contenido?'+params,{credentials:'same-origin',cache:'no-store'});
+            } else {
+              const params={tabla:q.tabla,action:q.operation};
+              if(q.operation==='insertar')params.datos=q.payload;
+              else if(q.operation==='eliminar')params.id=q.valor;
+              else if(q.operation==='marcar_vista')params.id=q.valor;
+              r=await fetch('/api/contenido',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(params)});
+            }
+            const d=await r.json();
+            if(!r.ok)throw Error(d.error||'Error de comunicación con Vercel');
+            const rows=d.data;
+            return {data:q.operation==='select'&&q.single?(rows?.[0]||null):rows,error:null};
+          }catch(error){console.error('Contenido Michi:',error);return {data:null,error};}
+        })().then(resolve,reject);
+      }
+    };
+    return chain;
+  }
+};
+</script>
+<script>
+// Fotografías nuevas: subida firmada al almacenamiento privado chat-archivos.
+sb.storage={from(bucket){return {
+ async upload(_legacyPath,file){
+  try{
+   const r=await fetch('/api/foto-storage',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:file.name,type:file.type,size:file.size})});
+   const d=await r.json();if(!r.ok)throw Error(d.error||'No se pudo autorizar la foto.');
+   const base='https://pnjxhzuayhsqvlitfaak.supabase.co';
+   const upload=await fetch(base+'/storage/v1/object/upload/sign/chat-archivos/'+d.path+'?token='+encodeURIComponent(d.token),{method:'PUT',headers:{'Content-Type':file.type},body:file});
+   if(!upload.ok)throw Error('La foto no se pudo subir.');
+   return {data:{path:d.path},error:null};
+  }catch(error){return {data:null,error};}
+ },
+ getPublicUrl(path){return {data:{publicUrl:window.location.origin+'/api/foto-file?path='+encodeURIComponent(path)}};},
+ async remove(paths){
+  for(const path of paths){
+   if(!path?.startsWith('galeria/'))return {error:Error('Esta foto antigua requiere revisión para eliminarse.')};
+   const r=await fetch('/api/foto-storage',{method:'DELETE',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})});
+   if(!r.ok)return {error:Error('No se pudo eliminar la fotografía.')};
+  }
+  return {error:null};
+ }
+};}};
 </script>
 <style>
 :root{--rojo:#CC1133;--rojo-claro:#FF3355;--azul:#0A1A3A;--azul-claro:#2244AA;--plomo:#8899AA;--negro:#050810;--blanco:#F0F4FF;--card:rgba(10,20,50,0.7);--border:rgba(100,130,200,0.2);}
@@ -288,10 +347,10 @@ async function uploadFotos(files){
   for(const file of files){
     const ext=file.name.split('.').pop();
     const path=`fotos/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const{error:upErr}=await sb.storage.from('media').upload(path,file,{contentType:file.type});
+    const{data:upData,error:upErr}=await sb.storage.from('media').upload(path,file,{contentType:file.type});
     if(upErr){toast(`❌ Error subiendo ${file.name}`,'err2');continue;}
-    const{data:urlData}=sb.storage.from('media').getPublicUrl(path);
-    await sb.from('fotos').insert({url:urlData.publicUrl,storage_path:path});
+    const{data:urlData}=sb.storage.from('media').getPublicUrl(upData.path);
+    const{error:dbErr}=await sb.from('fotos').insert({url:urlData.publicUrl,storage_path:upData.path}); if(dbErr){toast('❌ No se pudo guardar la foto en la galería','err2');continue;}
     done++;pb.style.width=`${(done/files.length)*100}%`;
   }
   pw.style.display='none';toast(`✅ ${done} foto${done>1?'s':''} subida${done>1?'s':''}`);

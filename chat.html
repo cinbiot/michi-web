@@ -11,11 +11,13 @@
 body{display:flex;flex-direction:column;overflow:hidden}header{height:68px;flex-shrink:0;display:flex;align-items:center;gap:13px;padding:10px 18px;background:#101629;border-bottom:1px solid var(--border)}
 .avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#a41748,#314da8);font-size:23px;flex-shrink:0}
 header h1{font-size:17px;line-height:1.2;margin:0;font-weight:650}header p{font-size:11px;color:#8fa0c4;margin:4px 0 0}
+#push-button{border:1px solid #734467;border-radius:17px;background:#33203c;color:#ffb9d7;padding:7px 10px;cursor:pointer;font-size:12px;flex-shrink:0}
+#push-button:disabled{opacity:.5;cursor:default}
 #who{margin-left:auto;color:var(--rose);font-size:12px}#messages{flex:1;overflow:auto;padding:20px max(18px,calc((100vw - 760px)/2));display:flex;flex-direction:column;gap:10px;background:radial-gradient(ellipse at 20% 10%,#201126 0%,transparent 50%),radial-gradient(ellipse at 80% 70%,#0b1734 0%,transparent 55%),#060913}
 .date{align-self:center;color:#a9acc6;background:#14182be8;border:1px solid #283351;padding:5px 13px;border-radius:50px;font-size:11px;margin:7px 0}
 .bubble{max-width:min(80%,410px);border:1px solid #293854;border-radius:18px;padding:10px 13px 8px;background:#131a33;align-self:flex-start;word-wrap:break-word;overflow-wrap:anywhere;box-shadow:0 3px 14px #0003}
 .bubble.mine{align-self:flex-end;background:#3e1937;border-color:#792b55;border-bottom-right-radius:5px}
-.bubble.other{border-bottom-left-radius:5px}.sender{font-size:11px;color:#ffabce;font-weight:600;margin:0 0 5px}.msg-text{white-space:pre-wrap;font-size:14px;line-height:1.55}.stamp{display:block;text-align:right;font-size:10px;color:#9fabc3;margin-top:5px}.attachment{margin-top:7px;display:block;color:#fdd1ea;text-decoration:none;font-size:12px;max-width:290px}.attachment img{width:100%;max-height:250px;object-fit:cover;border-radius:10px;display:block}.attachment video{width:100%;max-height:240px}.attachment audio{width:100%;max-width:290px}
+.bubble.other{border-bottom-left-radius:5px}.sender{font-size:11px;color:#ffabce;font-weight:600;margin:0 0 5px}.msg-text{white-space:pre-wrap;font-size:14px;line-height:1.55}.stamp{display:block;text-align:right;font-size:10px;color:#9fabc3;margin-top:5px}.attachment{margin-top:7px;display:block;color:#fdd1ea;text-decoration:none;font-size:12px;max-width:290px}.attachment img{width:100%;max-height:250px;object-fit:cover;border-radius:10px;display:block}.attachment video{width:100%;max-height:240px}.attachment audio,.voice-message{width:100%;max-width:290px}
 #older-wrap{display:flex;justify-content:center;padding:6px 0 12px;flex-shrink:0}
 #older-wrap[hidden]{display:none}
 #older{border:1px solid #5b4770;background:#241b37;color:#ffcee5;border-radius:22px;padding:9px 17px;cursor:pointer;font-size:12px}
@@ -32,17 +34,63 @@ button.send{background:linear-gradient(135deg,#bc2454,#4259b1);border:0}button:d
 @media(max-width:540px){.bubble{max-width:90%}header h1{font-size:15px}#messages{padding:14px 12px}}
 .identity-choice{padding:9px 12px;margin:0 3px;border:1px solid #87415f;border-radius:20px;color:#ffcee3;background:#38192c;cursor:pointer}
 #who{cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* Campanita compacta en Android: deja visibles los nombres del chat. */
+@media(max-width:540px){
+ header{gap:6px;padding:8px 9px}
+ .avatar{width:35px;height:35px;font-size:18px}
+ header h1{font-size:13px}
+ header p{font-size:9px}
+ #who{font-size:10px;max-width:73px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #push-button{font-size:0;padding:7px 8px;min-width:35px}
+ #push-button::after{content:'🔔';font-size:18px}
+ #push-button[data-enabled="yes"]::after{content:'🔕'}
+}
+/* V9: edición, notas de voz e indicador de escritura. */
+.msg-edit-btn{border:0;background:transparent;color:#efb7d7;font-size:11px;padding:3px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.edited-tag{font-size:10px;color:#c4a6bd;margin-top:5px;text-align:right}
+.edit-message{display:flex;flex-direction:column;gap:8px;min-width:min(65vw,250px)}
+.edit-message textarea{min-height:72px;border-radius:10px;resize:vertical;background:#20192b;color:#fff;border:1px solid #ac6785;padding:10px;font:inherit;font-size:14px}
+.edit-actions{display:flex;justify-content:flex-end;gap:8px}.edit-actions button{border-radius:15px;padding:6px 11px;color:#fff;border:1px solid #8d5c80;background:#3a2140;cursor:pointer}
+#typing{height:22px;padding:3px 16px;text-align:center;color:#f6a7ce;font-size:12px;flex-shrink:0}
+#voice-preview{background:#15192b;border-top:1px solid #5b3752;padding:8px 15px;display:flex;justify-content:center;align-items:center;gap:12px}
+#voice-preview[hidden]{display:none}#voice-preview audio{height:36px;max-width:min(70vw,300px)}
+#voice-cancel{border:1px solid #915d71;border-radius:16px;background:#41243c;color:#f8ceda;padding:6px 10px;cursor:pointer}
+button.recording{color:#fff;background:#ae214d;animation:record-pulse 1.1s infinite alternate}
+@keyframes record-pulse{from{box-shadow:0 0 0 0 rgba(255,90,133,.3)}to{box-shadow:0 0 0 9px rgba(255,90,133,0)}}
+/* V9 ampliada: responder mensajes y navegar a la referencia. */
+.msg-reply-btn{border:0;background:transparent;color:#c9bce9;font-size:11px;padding:3px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.msg-reply-btn:hover{color:#ffb7d9}
+.reply-quote{display:block;width:100%;text-align:left;border:0;border-left:3px solid #ff91ba;border-radius:8px;background:#ffffff11;padding:7px 9px;margin:0 0 9px;color:#f4e8fa;cursor:pointer}
+.reply-quote:disabled{cursor:default;opacity:.75}
+.reply-person{display:block;color:#ffb4d2;font-size:11px;font-weight:700;margin-bottom:3px}
+.reply-excerpt{display:block;color:#ddcddd;font-size:12px;line-height:1.3;max-height:3.8em;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap}
+#reply-preview{display:flex;align-items:center;gap:10px;padding:8px max(12px,calc((100vw - 760px)/2));border-top:1px solid #51314c;background:#1b1427}
+#reply-preview[hidden]{display:none}
+#reply-preview-inner{min-width:0;flex:1;border-left:3px solid #f18ab5;padding-left:10px}
+#reply-to{font-size:12px;color:#ffabd2;font-weight:700;margin-bottom:3px}
+#reply-excerpt{color:#dacbdf;font-size:12px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#reply-cancel{border:1px solid #78536c;background:#38243b;color:#ffe3f1;border-radius:50%;width:30px;height:30px;cursor:pointer}
+.bubble.focus-replied{animation:focus-reply 1.4s ease-out}
+@keyframes focus-reply{0%,30%{outline:2px solid #f99cc8;outline-offset:3px}100%{outline:2px solid transparent;outline-offset:3px}}
 </style>
 </head>
 <body>
 <div id="locked"><div><div style="font-size:42px">💌</div><h2>Comprobando acceso...</h2><p>Introduce el código en la página principal para entrar.</p><a href="/">Volver al inicio</a></div></div>
-<header><div class="avatar">🐱</div><div><h1>Michi & Coquito ❤️</h1><p>Guardados hasta que los borremos 💌</p></div><span id="who"></span></header>
+<header><div class="avatar">🐱</div><div><h1>Michi & Coquito ❤️</h1><p>Guardados hasta que los borremos 💌</p></div><span id="who"></span><button id="push-button" type="button" title="Activar avisos de nuevos mensajes" disabled>🔔 Activar avisos</button></header>
 <div id="identity" hidden style="padding:10px;text-align:center;background:#101629;border-bottom:1px solid #26304f;color:#ffcfdf">¿Quién está escribiendo? <button type="button" data-name="Michi" class="identity-choice">🐱 Michi</button> <button type="button" data-name="Coquito" class="identity-choice">❤️ Coquito</button></div>
 <main id="messages" aria-label="Mensajes"></main>
+<div id="typing" aria-live="polite"></div>
 <div id="sending" aria-live="polite"></div>
+<div id="voice-preview" hidden><span>🎙️ Audio listo</span><audio id="voice-player" controls></audio><button id="voice-cancel" type="button">Descartar</button></div>
+<div id="reply-preview" hidden aria-live="polite">
+ <div id="reply-preview-inner"><div id="reply-to"></div><div id="reply-excerpt"></div></div>
+ <button id="reply-cancel" type="button" aria-label="Cancelar respuesta" title="Cancelar respuesta">✕</button>
+</div>
 <form id="sendform">
  <input type="file" id="file" accept="image/*,audio/*,video/*,.pdf,.txt,.doc,.docx" hidden />
  <button class="iconbtn" id="attach" type="button" aria-label="Adjuntar archivo" title="Subir foto o archivo">＋</button>
+ <button class="iconbtn" id="mic" type="button" aria-label="Grabar nota de voz" title="Grabar audio">🎙</button>
  <textarea id="message" placeholder="Escribe algo bonito..." rows="1" maxlength="4000" aria-label="Mensaje"></textarea>
  <button class="iconbtn send" id="send" type="submit" aria-label="Enviar">➤</button>
 </form>
@@ -51,10 +99,12 @@ button.send{background:linear-gradient(135deg,#bc2454,#4259b1);border:0}button:d
 // Los nombres son apodos elegidos; una clave compartida no verifica identidad individual.
 const sb=supabase.createClient('https://pnjxhzuayhsqvlitfaak.supabase.co','sb_publishable_GFbMfDmyqfpxa21DOp8kyQ_-rYlTNY4');
 const list=document.getElementById('messages'),box=document.getElementById('message');
-let myName=localStorage.getItem('michi-chat-nombre'),busy=false;
+let myName=localStorage.getItem('michi-chat-nombre'),busy=false,replyingTo=null;
+let recorder=null, recordStream=null, recordTimer=null, pendingVoice=null, voiceUrl=null, lastTypingUpdate=0;
 const entries=new Map();
 let hasOlder=false, rendering=false, loading=false, loaded=false;
 function setStatus(s){document.getElementById('sending').textContent=s||'';}
+function otherName(){return myName==='Michi'?'Coquito':'Michi';}
 function dateLabel(s){return new Date(s).toLocaleDateString('es-BO',{year:'numeric',month:'long',day:'numeric'});}
 function nearBottom(){return list.scrollHeight-list.scrollTop-list.clientHeight<180;}
 function scrollBottom(){list.scrollTop=list.scrollHeight;}
@@ -62,9 +112,9 @@ function addEl(parent,tag,cls,txt){const el=document.createElement(tag);if(cls)e
 function chooseIdentity(){
  const picker=document.getElementById('identity');picker.hidden=false;
  document.querySelectorAll('.identity-choice').forEach(b=>b.onclick=()=>{
-  myName=b.dataset.name;localStorage.setItem('michi-chat-nombre',myName);picker.hidden=true;
+  myName=b.dataset.name;localStorage.setItem('michi-chat-nombre',myName);picker.hidden=true;cancelReply();
   document.getElementById('who').textContent=myName+' · cambiar';
-  renderAll(false);
+  renderAll(false);refreshTyping();initPushStatus();
  });
 }
 async function api(url,options){
@@ -76,8 +126,19 @@ function sortedMessages(){return [...entries.values()].sort((a,b)=>a.created_at.
 async function renderMessage(parent,m){
  const mine=m.nombre===myName;
  const bubble=addEl(parent,'article','bubble '+(mine?'mine':'other'));
+ bubble.id='msg-'+m.id;
  if(!mine)addEl(bubble,'div','sender',m.nombre);
+ if(m.respuesta_nombre){
+  const originalExiste=!!m.respuesta_a;
+  const quote=addEl(bubble,'button','reply-quote');
+  quote.type='button';quote.disabled=!originalExiste;
+  quote.setAttribute('aria-label',originalExiste?'Ir al mensaje respondido':'Mensaje original eliminado');
+  addEl(quote,'span','reply-person',m.respuesta_nombre);
+  addEl(quote,'span','reply-excerpt',originalExiste?(m.respuesta_resumen||'Mensaje'):'Mensaje original eliminado');
+  if(originalExiste)quote.onclick=()=>jumpToReply(m.respuesta_a);
+ }
  if(m.contenido)addEl(bubble,'div','msg-text',m.contenido);
+ if(m.editado_en)addEl(bubble,'div','edited-tag','Editado');
  if(m.archivo_path){
   const a=addEl(bubble,'a','attachment','📎 '+(m.archivo_nombre||'Archivo'));
   a.target='_blank';a.rel='noopener noreferrer';
@@ -85,16 +146,25 @@ async function renderMessage(parent,m){
   a.href=url;
   const mime=m.archivo_tipo||'';
   if(mime.startsWith('image/')){const img=document.createElement('img');img.loading='lazy';img.src=url;img.alt=m.archivo_nombre||'Imagen';a.replaceChildren(img);}
-  else if(mime.startsWith('audio/')){const aud=document.createElement('audio');aud.src=url;aud.controls=true;a.appendChild(aud);}
+  else if(mime.startsWith('audio/')){const aud=document.createElement('audio');aud.src=url;aud.controls=true;aud.preload='metadata';a.textContent='🎧 Descargar audio';a.before(aud);aud.className='voice-message';}
   else if(mime.startsWith('video/')){const vid=document.createElement('video');vid.src=url;vid.controls=true;vid.preload='metadata';a.appendChild(vid);}
  }
  const foot=addEl(bubble,'div','msg-actions');
  addEl(foot,'time','stamp',new Date(m.created_at).toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'}));
- const remove=addEl(foot,'button','msg-delete','Eliminar');
- remove.type='button';remove.setAttribute('aria-label','Eliminar mensaje para ambos');
- remove.onclick=()=>deleteMessage(m.id);
+ const respond=addEl(foot,'button','msg-reply-btn','Responder');
+ respond.type='button';respond.setAttribute('aria-label','Responder al mensaje de '+m.nombre);
+ respond.onclick=()=>selectReply(m);
+ if(mine){
+  if(m.contenido){
+   const edit=addEl(foot,'button','msg-edit-btn','Editar');
+   edit.type='button';edit.onclick=()=>editMessage(m,bubble);
+  }
+  const remove=addEl(foot,'button','msg-delete','Eliminar');
+  remove.type='button';remove.setAttribute('aria-label','Eliminar mensaje para ambos');
+  remove.onclick=()=>deleteMessage(m.id);
+ }
 }
-async function renderAll(preserve=true){
+async function renderAll(preserve=true,prepend=false){
  if(rendering)return;
  rendering=true;
  const auto=nearBottom(), oldHeight=list.scrollHeight,oldTop=list.scrollTop;
@@ -109,7 +179,8 @@ async function renderAll(preserve=true){
    await renderMessage(frag,m);
   }
   list.replaceChildren(frag);
-  if(!preserve || auto)scrollBottom();
+  if(prepend)list.scrollTop=oldTop+(list.scrollHeight-oldHeight);
+  else if(!preserve || auto)scrollBottom();
   else list.scrollTop=oldTop+(list.scrollHeight-oldHeight);
  }finally{rendering=false;}
 }
@@ -126,9 +197,12 @@ async function loadMessages(){
    const recentIds=new Set(messages.map(m=>m.id));
    for(const [id,m] of entries)if(m.created_at>=min&&!recentIds.has(id)){entries.delete(id);changed=true;}
   }else if(!hasOlder&&entries.size){entries.clear();changed=true;}
-  for(const m of messages)if(!entries.has(m.id)){entries.set(m.id,m);changed=true;}
+  for(const m of messages){
+   const prev=entries.get(m.id);
+   if(!prev || prev.contenido!==m.contenido || prev.editado_en!==m.editado_en || prev.archivo_path!==m.archivo_path || prev.respuesta_a!==m.respuesta_a || prev.respuesta_nombre!==m.respuesta_nombre || prev.respuesta_resumen!==m.respuesta_resumen){entries.set(m.id,m);changed=true;}
+  }
   if(changed||!list.children.length)await renderAll();
-  setStatus('');
+  if(!recorder && !pendingVoice)setStatus('');
  }catch(e){setStatus(e.message);}
  finally{loading=false;}
 }
@@ -141,14 +215,60 @@ async function loadOlder(){
   const {messages,hasMore}=await api('/api/chat?before='+cursor);
   hasOlder=hasMore;
   for(const m of messages)entries.set(m.id,m);
-  await renderAll(true);setStatus('');
+  await renderAll(true,true);setStatus('');
  }catch(e){setStatus(e.message);}
  finally{loading=false;}
+}
+function previewForReply(m){
+ const mime=m.archivo_tipo||'';
+ return (m.contenido||'').trim() ||
+   (mime.startsWith('image/')?'📷 Fotografía':mime.startsWith('audio/')?'🎙 Nota de voz':
+   mime.startsWith('video/')?'🎬 Video':m.archivo_nombre?'📎 '+m.archivo_nombre:'📎 Archivo');
+}
+function selectReply(m){
+ replyingTo={id:m.id,nombre:m.nombre,preview:previewForReply(m)};
+ document.getElementById('reply-to').textContent='Responder a '+m.nombre;
+ document.getElementById('reply-excerpt').textContent=replyingTo.preview;
+ document.getElementById('reply-preview').hidden=false;
+ box.focus();
+}
+function cancelReply(){
+ replyingTo=null;
+ document.getElementById('reply-preview').hidden=true;
+ document.getElementById('reply-to').textContent='';
+ document.getElementById('reply-excerpt').textContent='';
+}
+function jumpToReply(id){
+ const target=document.getElementById('msg-'+id);
+ if(!target){setStatus('El mensaje original está entre los mensajes anteriores. Pulsa «Ver mensajes anteriores» para cargarlo.');return;}
+ target.scrollIntoView({behavior:'smooth',block:'center'});
+ target.classList.remove('focus-replied');void target.offsetWidth;target.classList.add('focus-replied');
+}
+function editMessage(m,bubble){
+ if(m.nombre!==myName)return;
+ const text=bubble.querySelector('.msg-text');
+ if(!text||bubble.querySelector('.edit-message'))return;
+ const editor=document.createElement('div');editor.className='edit-message';
+ const area=document.createElement('textarea');area.value=m.contenido||'';area.maxLength=4000;area.setAttribute('aria-label','Editar mensaje');
+ const actions=document.createElement('div');actions.className='edit-actions';
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';
+ const save=document.createElement('button');save.type='button';save.textContent='Guardar';
+ actions.append(cancel,save);editor.append(area,actions);text.replaceWith(editor);area.focus();
+ cancel.onclick=()=>editor.replaceWith(text);
+ save.onclick=async()=>{
+  const content=area.value.trim();if(!content){setStatus('El mensaje no puede quedar vacío.');return;}
+  save.disabled=true;
+  try{
+   const r=await api('/api/chat?id='+encodeURIComponent(m.id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName,contenido:content})});
+   if(r.message&&!r.unchanged){entries.set(m.id,r.message);}
+   await loadMessages();await renderAll(true);setStatus('Mensaje actualizado.');
+  }catch(e){setStatus('Error al editar: '+e.message);save.disabled=false;}
+ };
 }
 async function deleteMessage(id){
  if(!confirm('¿Eliminar este mensaje para los dos? Se borrará de la conversación y no se podrá recuperar desde el chat.'))return;
  try{
-  const d=await api('/api/chat?id='+encodeURIComponent(id),{method:'DELETE'});
+  const d=await api('/api/chat?id='+encodeURIComponent(id),{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName})});
   entries.delete(id);
   await renderAll(true);
   setStatus(d.fileRemoved===false?'El mensaje se eliminó, pero hubo un problema al eliminar su archivo.':'Mensaje eliminado para ambos.');
@@ -157,7 +277,7 @@ async function deleteMessage(id){
 async function sendMessage(){
  if(busy)return;
  if(!myName){chooseIdentity();setStatus('Primero elige Michi o Coquito.');return;}
- const content=box.value.trim(), file=document.getElementById('file').files[0];
+ const content=box.value.trim(), file=pendingVoice || document.getElementById('file').files[0];
  if(!content&&!file)return;
  if(file&&file.size>10*1024*1024){setStatus('El archivo supera 10 MB.');return;}
  busy=true;document.getElementById('send').disabled=true;setStatus('Enviando...');
@@ -169,10 +289,138 @@ async function sendMessage(){
     if(uploaded.error)throw uploaded.error;
     path=ticket.path;
   }
-  await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName,contenido:content,archivo_path:path,archivo_nombre:file?.name||null,archivo_tipo:file?.type||null})});
-  box.value='';document.getElementById('file').value='';setStatus('');await loadMessages();scrollBottom();
+  await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName,contenido:content,archivo_path:path,archivo_nombre:file?.name||null,archivo_tipo:file?.type||null,respuesta_a:replyingTo?.id||null})});
+  box.value='';document.getElementById('file').value='';clearVoice();cancelReply();setStatus('');sendTyping(false);await loadMessages();scrollBottom();
  }catch(e){setStatus('No se pudo enviar: '+(e.message||'Error'));}
  finally{busy=false;document.getElementById('send').disabled=false;}
+}
+// Notificaciones Push V9: un permiso por navegador/dispositivo.
+const pushButton=document.getElementById('push-button');
+let pushBusy=false;
+function pushSupported(){return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && window.isSecureContext;}
+async function pushRegistration(){
+  // Solo registra el worker después de una acción explícita del usuario.
+  return navigator.serviceWorker.register('/michi-sw.js', {scope:'/'});
+}
+async function getExistingPush(){
+  const reg=await navigator.serviceWorker.getRegistration('/');
+  return reg ? reg.pushManager.getSubscription() : null;
+}
+function formatPushState(active){
+  pushButton.textContent=active?'🔕 Desactivar avisos':'🔔 Activar avisos';
+  pushButton.title=active?'Dejar de recibir avisos en este dispositivo':'Recibir avisos en este dispositivo';
+  pushButton.dataset.enabled=active?'yes':'no';
+  pushButton.setAttribute('aria-label',pushButton.title);
+  pushButton.disabled=pushBusy || !myName || !pushSupported() || Notification.permission==='denied';
+}
+async function initPushStatus(){
+  if(!pushSupported()){
+    pushButton.textContent='🔔 No compatible';pushButton.disabled=true;return;
+  }
+  try{
+    const subscription=await getExistingPush();
+    // Si se cambia de apodo en el mismo navegador, actualiza su destinatario.
+    if(subscription && myName){
+      await api('/api/chat-push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName,subscription:subscription.toJSON()})});
+    }
+    formatPushState(!!subscription);
+  }catch(e){formatPushState(false);}
+}
+async function togglePush(){
+  if(pushBusy || !myName){setStatus('Elige Michi o Coquito antes de activar los avisos.');return;}
+  if(!pushSupported()){setStatus('Este navegador no admite notificaciones Push.');return;}
+  pushBusy=true;pushButton.disabled=true;
+  try{
+    const current=await getExistingPush();
+    if(current){
+      await api('/api/chat-push',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:current.endpoint})});
+      await current.unsubscribe();
+      formatPushState(false);setStatus('Avisos desactivados en este dispositivo.');
+    }else{
+      const config=await api('/api/chat-push');
+      if(!config.available||!config.publicKey)throw new Error('Faltan las claves de notificaciones en Vercel.');
+      const permission=await Notification.requestPermission();
+      if(permission!=='granted')throw new Error('Debes permitir las notificaciones en el navegador.');
+      const reg=await pushRegistration();
+      const raw=atob(config.publicKey.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-config.publicKey.length%4)%4));
+      const key=Uint8Array.from(raw,ch=>ch.charCodeAt(0));
+      const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+      try{
+        await api('/api/chat-push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName,subscription:sub.toJSON()})});
+      }catch(e){await sub.unsubscribe();throw e;}
+      formatPushState(true);setStatus('🔔 Avisos activados en este dispositivo.');
+    }
+  }catch(e){setStatus('Notificaciones: '+e.message);}
+  finally{pushBusy=false;initPushStatus();}
+}
+pushButton.addEventListener('click',togglePush);
+
+// Indicador de escritura, compartido entre dispositivos y visible solo durante unos segundos.
+async function sendTyping(active){
+ if(!['Michi','Coquito'].includes(myName) || document.hidden)return;
+ try{await api('/api/chat-presence',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:myName,escribiendo:active})});}catch(_){/* Si falla, el chat sigue funcionando. */}
+}
+function notifyTyping(){
+ if(!['Michi','Coquito'].includes(myName))return;
+ const now=Date.now();
+ if(now-lastTypingUpdate>=3500){lastTypingUpdate=now;sendTyping(!!box.value.trim());}
+}
+async function refreshTyping(){
+ if(document.hidden||!['Michi','Coquito'].includes(myName))return;
+ try{
+  const {escribiendo}=await api('/api/chat-presence');
+  document.getElementById('typing').textContent=(escribiendo||[]).includes(otherName())?otherName()+' está escribiendo…':'';
+ }catch(_){document.getElementById('typing').textContent='';}
+}
+// Notas de voz grabadas localmente en el navegador y guardadas en el mismo bucket privado.
+function clearVoice(){
+ pendingVoice=null;
+ if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null;}
+ document.getElementById('voice-player').removeAttribute('src');
+ document.getElementById('voice-preview').hidden=true;
+}
+function stopRecorder(){
+ if(recorder&&recorder.state==='recording')recorder.stop();
+}
+async function toggleRecorder(){
+ if(recorder){stopRecorder();return;}
+ if(pendingVoice){setStatus('Descarta o envía el audio anterior antes de grabar otro.');return;}
+ if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){
+  setStatus('Este navegador no admite grabación. Usa Chrome, Edge o Safari actualizado por HTTPS.');return;
+ }
+ try{
+  recordStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  const types=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'];
+  const selected=types.find(t=>MediaRecorder.isTypeSupported(t));
+  recorder=new MediaRecorder(recordStream,selected?{mimeType:selected,audioBitsPerSecond:64000}:{audioBitsPerSecond:64000});
+  const chunks=[];
+  recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+  recorder.onerror=()=>setStatus('No se pudo grabar el audio.');
+  recorder.onstop=()=>{
+   clearTimeout(recordTimer);recordTimer=null;
+   if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null;}
+   const mime=recorder?.mimeType?.split(';')[0]||'audio/webm';recorder=null;
+   document.getElementById('mic').classList.remove('recording');document.getElementById('mic').textContent='🎙';
+   const blob=new Blob(chunks,{type:mime});
+   if(!blob.size){setStatus('No se grabó ningún audio.');return;}
+   if(blob.size>10*1024*1024){setStatus('El audio supera 10 MB; graba uno más corto.');return;}
+   const ext=mime.includes('mp4')?'m4a':mime.includes('ogg')?'ogg':'webm';
+   pendingVoice=new File([blob],'voz-michi-'+Date.now()+'.'+ext,{type:mime});
+   voiceUrl=URL.createObjectURL(blob);
+   document.getElementById('voice-player').src=voiceUrl;
+   document.getElementById('voice-preview').hidden=false;
+   setStatus('Escucha tu audio y pulsa Enviar, o descártalo.');
+  };
+  recorder.start();
+  document.getElementById('mic').textContent='■';
+  document.getElementById('mic').classList.add('recording');
+  setStatus('Grabando nota de voz… Pulsa ■ para detener (máximo 90 segundos).');
+  recordTimer=setTimeout(stopRecorder,90000);
+ }catch(e){
+  if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null;}
+  recorder=null;
+  setStatus('No se pudo usar el micrófono: '+(e.name==='NotAllowedError'?'permiso denegado.':e.message));
+ }
 }
 async function boot(){
  try{
@@ -182,13 +430,19 @@ async function boot(){
   document.getElementById('who').textContent=myName?myName+' · cambiar':'Elegir nombre';
   document.getElementById('who').onclick=chooseIdentity;
   if(!['Michi','Coquito'].includes(myName)){myName=null;chooseIdentity();}
-  await loadMessages();scrollBottom();
+  await loadMessages();scrollBottom();initPushStatus();
   // Mensajes guardados hasta su eliminación manual; consulta cada 5 segundos.
   setInterval(()=>{if(!document.hidden)loadMessages()},5000);
+  setInterval(refreshTyping,3000);refreshTyping();
  }catch(e){document.querySelector('#locked h2').textContent='Acceso restringido';document.querySelector('#locked p').textContent=e.message;}
 }
 document.getElementById('sendform').addEventListener('submit',e=>{e.preventDefault();sendMessage()});
-document.getElementById('attach').onclick=()=>document.getElementById('file').click();
+document.getElementById('attach').onclick=()=>{if(pendingVoice&&!confirm('¿Descartar el audio grabado para adjuntar otro archivo?'))return;clearVoice();document.getElementById('file').click();};
+document.getElementById('mic').onclick=toggleRecorder;
+document.getElementById('reply-cancel').onclick=cancelReply;
+document.getElementById('voice-cancel').onclick=()=>{clearVoice();setStatus('Audio descartado.');};
+box.addEventListener('input',notifyTyping);
+box.addEventListener('blur',()=>sendTyping(false));
 document.getElementById('file').onchange=()=>{const f=document.getElementById('file').files[0];setStatus(f?'Adjunto: '+f.name+' · máximo 10 MB':'');};
 box.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
 boot();

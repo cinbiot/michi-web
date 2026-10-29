@@ -12,11 +12,13 @@ self.addEventListener('push', event => {
   try { data = event.data ? event.data.json() : {}; } catch (_) {}
   const name = data.nombre === 'Michi' ? 'Michi' : 'Coquito';
   const title = name;
+  const incomingCall = data.tipo === 'llamada';
   const options = {
-    body: 'Te envió un mensaje 💌',
-    tag: 'michi-' + String(data.id || Date.now()).slice(0,60),
+    body: incomingCall ? (data.modo === 'video' ? '📹 Videollamada entrante. Toca para contestar.' : '📞 Llamada entrante. Toca para contestar.') : 'Te envió un mensaje 💌',
+    tag: (incomingCall ? 'michi-llamada-' : 'michi-') + String(data.id || Date.now()).slice(0,60),
     data: { url: '/chat.html' },
-    renotify: false,
+    renotify: incomingCall,
+    requireInteraction: incomingCall,
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });

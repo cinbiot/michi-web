@@ -1,3 +1,11 @@
+// Michi V9.2 - Activar inmediatamente las actualizaciones del receptor push.
+self.addEventListener('install', event => {
+  event.waitUntil(self.skipWaiting());
+});
+self.addEventListener('activate', event => {
+  event.waitUntil(self.clients.claim());
+});
+
 /* Michi V9: notificaciones push, sin texto de los mensajes. */
 self.addEventListener('push', event => {
   let data = {};

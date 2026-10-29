@@ -299,8 +299,10 @@ const pushButton=document.getElementById('push-button');
 let pushBusy=false;
 function pushSupported(){return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && window.isSecureContext;}
 async function pushRegistration(){
-  // Solo registra el worker después de una acción explícita del usuario.
-  return navigator.serviceWorker.register('/michi-sw.js', {scope:'/'});
+  // Nueva URL del mismo worker: evita utilizar la versión antigua del aviso.
+  return navigator.serviceWorker.register('/michi-sw.js?v=9-remitente-2', {
+    scope:'/',updateViaCache:'none'
+  });
 }
 async function getExistingPush(){
   const reg=await navigator.serviceWorker.getRegistration('/');
@@ -318,6 +320,16 @@ async function initPushStatus(){
     pushButton.textContent='🔔 No compatible';pushButton.disabled=true;return;
   }
   try{
+    // Si ya existen avisos, actualiza el worker sin borrar la suscripción.
+    const actual=await navigator.serviceWorker.getRegistration('/');
+    if(actual){
+      try{
+        const vigente=await pushRegistration();
+        await vigente.update();
+      }catch(error){
+        console.warn('No fue posible actualizar el receptor de avisos:', error);
+      }
+    }
     const subscription=await getExistingPush();
     // Si se cambia de apodo en el mismo navegador, actualiza su destinatario.
     if(subscription && myName){

@@ -1,5 +1,5 @@
 /* Proyecto Michi V10. Llamadas de voz y video mediante WebRTC.
-   Señalización privada: /api/chat-call y /api/chat-call-signal.
+   Señalización privada: rutas internas de /api/chat-push (límite Hobby).
    Los videos NO se almacenan; se transmiten entre los navegadores. */
 (() => {
  'use strict';
@@ -22,13 +22,13 @@
  function failMessage(e) {return e?.message || 'No se pudo completar la llamada.';}
  async function request(url,opt){return api(url,opt);}
  async function action(accion,data={}){
-  return request('/api/chat-call',{method:'POST',headers:{'Content-Type':'application/json'},
+  return request('/api/chat-push?michiRoute=call',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({accion,nombre:NAME(),...data})});
  }
  async function sendSignal(tipo,datos){
   if(!current)return;
   const id=current.id;
-  return request('/api/chat-call-signal',{method:'POST',headers:{'Content-Type':'application/json'},
+  return request('/api/chat-push?michiRoute=signal',{method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({id,nombre:NAME(),tipo,datos})});
  }
  function toggleOverlay(show){
@@ -183,7 +183,7 @@
   if(!current||!peer||inFlight)return;
   inFlight=true;
   try{
-    const r=await request('/api/chat-call-signal?id='+encodeURIComponent(current.id)+'&nombre='+encodeURIComponent(NAME())+'&after='+signalCursor);
+    const r=await request('/api/chat-push?michiRoute=signal&id='+encodeURIComponent(current.id)+'&nombre='+encodeURIComponent(NAME())+'&after='+signalCursor);
     for(const s of r.signals||[]){
       if(!current)break;
       signalCursor=Math.max(signalCursor,Number(s.id)||0);
@@ -199,7 +199,7 @@
   if(now-lastCheck<(current?1300:3800))return;
   lastCheck=now;pollBusy=true;
   try{
-    const r=await request('/api/chat-call?nombre='+encodeURIComponent(NAME()));
+    const r=await request('/api/chat-push?michiRoute=call&nombre='+encodeURIComponent(NAME()));
     const call=r.call;
     if(current){
       if(!call||call.id!==current.id||!['sonando','aceptada'].includes(call.estado)){

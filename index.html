@@ -210,7 +210,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 </div>
 
 <!-- AUDIO FONDO -->
-<audio id="bg-music" src="https://pnjxhzuayhsqvlitfaak.supabase.co/storage/v1/object/public/Media/Musicapag.mp3" loop preload="auto"></audio>
+<audio id="bg-music" data-src="https://pnjxhzuayhsqvlitfaak.supabase.co/storage/v1/object/public/Media/Musicapag.mp3" loop preload="none"></audio>
 
 <!-- PANTALLA BLOQUEO -->
 <div id="screen-lock">
@@ -439,12 +439,32 @@ const bgMusic = document.getElementById('bg-music');
 bgMusic.volume = 0.35;
 let musicaActiva = false;
 
-function playMusic(){ if(!musicaActiva) return; bgMusic.play().catch(()=>{}); }
+// La canción NO se descarga en la pantalla de acceso: se activa solo al usarla.
+function habilitarFuenteMusica(){
+  if(!bgMusic.getAttribute('src')){
+    bgMusic.src=bgMusic.dataset.src;
+  }
+}
+function playMusic(){
+  if(!musicaActiva) return;
+  habilitarFuenteMusica();
+  bgMusic.play().catch(()=>{});
+}
 function pauseMusic(){ bgMusic.pause(); }
 
 function toggleMusic(){
-  if(bgMusic.paused){ bgMusic.play(); musicaActiva=true; document.getElementById('music-btn').textContent='🔇'; }
-  else { bgMusic.pause(); document.getElementById('music-btn').textContent='🎵'; }
+  const mb=document.getElementById('music-btn');
+  if(bgMusic.paused){
+    habilitarFuenteMusica();
+    bgMusic.play().then(()=>{
+      musicaActiva=true;
+      mb.textContent='🔇';
+    }).catch(()=>{mb.textContent='🎵';});
+  } else {
+    bgMusic.pause();
+    musicaActiva=false;
+    mb.textContent='🎵';
+  }
 }
 
 function silenciarPorContenido(){ pauseMusic(); }
@@ -490,7 +510,8 @@ function unlock(){
     document.getElementById('private-logout').style.display='block';
     const mb=document.getElementById('music-btn');
     mb.style.display='flex';
-    // Iniciar música automáticamente al desbloquear
+    // Mantener la música automática tras desbloquear, pero nunca precargarla antes.
+    habilitarFuenteMusica();
     bgMusic.play().then(()=>{
       musicaActiva=true;
       mb.textContent='🔇';

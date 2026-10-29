@@ -26,6 +26,13 @@ function requestHost(req) {
   return /^[a-z0-9.-]{3,200}$/.test(h) ? h : null;
 }
 module.exports = async function handler(req,res) {
+  // V10: Enruta llamadas por la misma funcion ya existente, sin sumar endpoints.
+  if (req.query?.michiRoute === 'call') {
+    return require('../lib/michi-call-service')(req,res);
+  }
+  if (req.query?.michiRoute === 'signal') {
+    return require('../lib/michi-call-signals')(req,res);
+  }
   C.noCache(res);
   if (!C.isAuthorized(req)) return C.fail(res,401,'Entra a Michi para activar notificaciones.');
   const publicKey = process.env.MICHI_VAPID_PUBLIC_KEY;

@@ -3,9 +3,9 @@ self.addEventListener('push', event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (_) {}
   const name = data.nombre === 'Michi' ? 'Michi' : 'Coquito';
-  const title = 'Proyecto Michi ❤️';
+  const title = name;
   const options = {
-    body: name + ' te envió un mensaje 💌',
+    body: 'Te envió un mensaje 💌',
     tag: 'michi-' + String(data.id || Date.now()).slice(0,60),
     data: { url: '/chat.html' },
     renotify: false,

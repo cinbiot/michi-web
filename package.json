@@ -1,0 +1,9 @@
+{
+  "name": "michi-web",
+  "private": true,
+  "version": "9.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}

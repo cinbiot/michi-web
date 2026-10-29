@@ -1,6 +1,7 @@
 const C = require('../lib/michi-common');
+const notifyRecipient = require('../lib/michi-push');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const FIELDS = 'id,nombre,contenido,archivo_path,archivo_nombre,archivo_tipo,created_at';
+const FIELDS = 'id,nombre,contenido,archivo_path,archivo_nombre,archivo_tipo,created_at,editado_en,respuesta_a,respuesta_nombre,respuesta_resumen';
 
 module.exports = async function handler(req, res) {
   C.noCache(res);
@@ -10,7 +11,7 @@ module.exports = async function handler(req, res) {
       // No existe fecha de caducidad. Se consultan páginas de mensajes antiguos.
       const limit = 60;
       const cursor = req.query.before;
-      if (cursor && (typeof cursor !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(cursor) || Number.isNaN(Date.parse(cursor)))) {
+      if (cursor && (typeof cursor !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,9})?(?:Z|[+-]\d\d:\d\d)$/i.test(cursor) || Number.isNaN(Date.parse(cursor)))) {
         return C.fail(res, 400, 'Fecha de consulta incorrecta.');
       }
       const extra = cursor ? '&created_at=lt.' + encodeURIComponent(cursor) : '';
@@ -26,7 +27,26 @@ module.exports = async function handler(req, res) {
       if (contenido.length > 4000 || (!contenido && !path) || (path && (path.length > 240 || !/^chat\/[0-9a-f-]{36}_[a-zA-Z0-9._-]+$/.test(path)))) {
         return C.fail(res, 400, 'Mensaje no válido.');
       }
+      // Guardar la referencia desde el servidor, no aceptar textos atribuidos a otros
+      // enviados por el navegador.
+      let respuesta = {respuesta_a:null, respuesta_nombre:null, respuesta_resumen:null};
+      if (b.respuesta_a != null) {
+        if (typeof b.respuesta_a !== 'string' || !UUID.test(b.respuesta_a)) {
+          return C.fail(res,400,'El mensaje que intentas responder no es válido.');
+        }
+        const originales = await C.supabaseRequest('/rest/v1/michi_mensajes?select=id,nombre,contenido,archivo_nombre,archivo_tipo&id=eq.' + b.respuesta_a + '&limit=1');
+        const original = originales?.[0];
+        if (!original) return C.fail(res,404,'El mensaje al que respondes ya no existe.');
+        const mime = original.archivo_tipo || '';
+        const texto = (original.contenido || '').trim() ||
+          (mime.startsWith('image/') ? '📷 Fotografía' :
+           mime.startsWith('audio/') ? '🎙 Nota de voz' :
+           mime.startsWith('video/') ? '🎬 Video' :
+           original.archivo_nombre ? '📎 ' + original.archivo_nombre : '📎 Archivo');
+        respuesta = {respuesta_a:original.id, respuesta_nombre:original.nombre, respuesta_resumen:texto.slice(0,200)};
+      }
       const message = {
+        ...respuesta,
         nombre:b.nombre, contenido:contenido||null, archivo_path:path||null,
         archivo_nombre:typeof b.archivo_nombre==='string'?b.archivo_nombre.slice(0,160):null,
         archivo_tipo:typeof b.archivo_tipo==='string'?b.archivo_tipo.slice(0,80):null
@@ -34,14 +54,43 @@ module.exports = async function handler(req, res) {
       const records = await C.supabaseRequest('/rest/v1/michi_mensajes',{
         method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(message)
       });
+      // Avisa a los dispositivos del destinatario en este mismo dominio.
+      // Un fallo de notificación no afecta al mensaje ya guardado.
+      try {
+        await notifyRecipient(b.nombre === 'Michi' ? 'Coquito' : 'Michi', records[0]?.id, req.headers.host);
+      } catch(e) { console.error('Push Michi:',e.message); }
       return res.status(201).json({message:records[0]});
+    }
+    if (req.method === 'PATCH') {
+      if (!C.sameOrigin(req)) return C.fail(res, 403, 'Solicitud no permitida.');
+      const id = req.query.id;
+      const b = C.jsonBody(req);
+      if (typeof id !== 'string' || !UUID.test(id)) return C.fail(res, 400, 'Mensaje no válido.');
+      if (!['Michi','Coquito'].includes(b.nombre)) return C.fail(res, 400, 'Elige tu nombre primero.');
+      if (typeof b.contenido !== 'string' || !b.contenido.trim() || b.contenido.trim().length > 4000) {
+        return C.fail(res, 400, 'El mensaje editado debe contener texto (máximo 4000 caracteres).');
+      }
+      const found = await C.supabaseRequest('/rest/v1/michi_mensajes?select=id,nombre,contenido,archivo_path&id=eq.' + id + '&limit=1');
+      if (!found.length) return C.fail(res, 404, 'El mensaje ya no existe.');
+      // Los nombres son apodos elegidos en el navegador, NO autenticación de identidad.
+      if (found[0].nombre !== b.nombre) return C.fail(res, 403, 'Solo edita mensajes de tu nombre.');
+      if (found[0].contenido === b.contenido.trim()) return res.status(200).json({ message: found[0], unchanged: true });
+      const records = await C.supabaseRequest('/rest/v1/michi_mensajes?id=eq.' + id, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json',Prefer:'return=representation'},
+        body:JSON.stringify({contenido:b.contenido.trim(), editado_en:new Date().toISOString()})
+      });
+      return res.status(200).json({ message: records[0] });
     }
     if (req.method === 'DELETE') {
       if (!C.sameOrigin(req)) return C.fail(res,403,'Solicitud no permitida.');
       const id = req.query.id;
+      const b = C.jsonBody(req);
+      if (!['Michi','Coquito'].includes(b.nombre)) return C.fail(res,400,'Elige tu nombre primero.');
       if (typeof id !== 'string' || !UUID.test(id)) return C.fail(res,400,'Mensaje no válido.');
-      const match = await C.supabaseRequest('/rest/v1/michi_mensajes?select=id,archivo_path&id=eq.'+id+'&limit=1');
+      const match = await C.supabaseRequest('/rest/v1/michi_mensajes?select=id,nombre,archivo_path&id=eq.'+id+'&limit=1');
       if (!match.length) return C.fail(res,404,'El mensaje ya no existe.');
+      if (match[0].nombre !== b.nombre) return C.fail(res,403,'Solo puedes borrar mensajes de tu nombre.');
       // Al borrar un mensaje, se elimina para los dos, nunca solo de la pantalla local.
       await C.supabaseRequest('/rest/v1/michi_mensajes?id=eq.'+id,{method:'DELETE'});
       let fileRemoved = true;

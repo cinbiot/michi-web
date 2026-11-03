@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Michi V10 → Nuestro Chat Android ❤️</title>
+<style>
+:root{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#3c2838;background:#fff5fa}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:22px 14px}
+main{width:min(100%,680px);margin:2rem auto;background:#fff;border-radius:24px;padding:24px;box-shadow:0 8px 40px #612c4720}
+h1{color:#a53369;font-size:1.55rem;line-height:1.3}h2{font-size:1.05rem}
+p,li{line-height:1.55}a{color:#8e2b64}label{display:block;margin:16px 0 6px;font-weight:650}
+input{width:100%;padding:14px;border:1px solid #c8aabd;border-radius:12px;font:inherit}
+button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:16px;color:white;background:#a9326e;font-weight:700;font-size:1rem;cursor:pointer}
+button:disabled{opacity:.55;cursor:default}progress{width:100%;height:15px;margin:14px 0}
+#status{white-space:pre-wrap;word-break:break-word;padding:12px;background:#fff5fa;border-radius:12px}
+#status.error{background:#ffe3e5;color:#782328}
+small{display:block;color:#74646e;line-height:1.5}#warn{background:#fff3d8;border-left:3px solid #bd893a;padding:10px;margin:12px 0;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<main>
+<h1>💌 Copiar Michi V10 a Nuestro Chat Android</h1>
+<p>Prepara un respaldo cifrado de las conversaciones antiguas para importar en los teléfonos de Michi y Coquito <strong>sin borrar los mensajes nuevos</strong>.</p>
+<p>Esta página solo accede al chat cuando has iniciado sesión en Michi V10. Tu contraseña de exportación <strong>nunca se envía a Vercel, Cloudflare ni Supabase</strong>: el cifrado se hace en este dispositivo.</p>
+<label for="password">Contraseña para proteger esta copia (mínimo 12 caracteres)</label>
+<input id="password" type="password" autocomplete="new-password" minlength="12" placeholder="Crea una contraseña distinta de la clave Cloudflare"/>
+<label for="confirm">Repite la contraseña</label>
+<input id="confirm" type="password" autocomplete="new-password" minlength="12"/>
+<small>Necesitarás exactamente esta contraseña al usar «Restaurar respaldo» en Android. Consérvala en un lugar seguro; no me la envíes.</small>
+<button type="button" id="download">Crear copia cifrada para Android</button>
+<progress id="progress" value="0" max="100" hidden></progress>
+<p id="status" role="status" aria-live="polite">Sin empezar.</p>
+<p id="warn" hidden></p>
+<h2>Después de descargarla</h2>
+<ol>
+<li>Guarda el archivo <strong>.michi</strong> sin renombrarlo.</li>
+<li>Pasa el archivo a tu teléfono por cable o un medio de confianza.</li>
+<li>En Nuestro Chat Android, entra a <strong>⋮ → Restaurar respaldo</strong>, selecciona el archivo e introduce la contraseña de esta copia.</li>
+<li>Comprueba mensajes y fotografías. Importa el mismo respaldo al segundo teléfono, si también quieres que Michi conserve ese historial.</li>
+</ol>
+<p><strong>Importante:</strong> no desinstales Michi V10 ni borres su base de datos hasta verificar la restauración. Los archivos antiguos de más de 5 MB o que no sean fotos o audios quedarán señalados para conservarlos por separado.</p>
+<p><a href="/chat.html">Volver a Michi V10</a></p>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const btn=$('download'), status=$('status'), warn=$('warn'), bar=$('progress');
+const utf8=new TextEncoder();
+function report(s,error=false){status.textContent=s;status.classList.toggle('error',error);}
+function b64(bytes){
+ const parts=[];for(let i=0;i<bytes.length;i+=32768){
+  const block=bytes.subarray(i,i+32768);
+  let str='';for(let j=0;j<block.length;j++)str+=String.fromCharCode(block[j]);
+  parts.push(str);
+ }
+ return btoa(parts.join(''));
+}
+async function fetchJson(path){
+ const res=await fetch(path,{credentials:'same-origin',cache:'no-store'});
+ if(!res.ok)throw new Error(res.status===401?'Inicia sesión en Michi V10 antes de exportar.':'Error HTTP '+res.status);
+ return res.json();
+}
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+async function uniqueMediaId(id){
+ const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',utf8.encode('michi-v10-media:'+id)));
+ const b=digest.slice(0,16);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+ const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+ return [h.slice(0,8),h.slice(8,12),h.slice(12,16),h.slice(16,20),h.slice(20,32)].join('-');
+}
+function previewReply(row,text){
+ return 'R3|'+JSON.stringify({
+   target:uuid.test(row.respuesta_a||'')?row.respuesta_a:null,
+   sender:row.respuesta_nombre==='Michi'?'michi':'coquito',
+   quote:(row.respuesta_resumen||'Mensaje anterior').slice(0,90),
+   text
+ });
+}
+async function getRows(){
+ const all=[],seen=new Set();
+ let before=null, pages=0;
+ do {
+  const path='/api/chat'+(before?'?before='+encodeURIComponent(before):'');
+  const data=await fetchJson(path);
+  if(!Array.isArray(data.messages))throw new Error('La respuesta del historial no es válida.');
+  for(const m of data.messages){
+    if(!uuid.test(m.id) || !['Michi','Coquito'].includes(m.nombre))throw new Error('Mensaje inválido en el historial antiguo.');
+    if(!seen.has(m.id)){seen.add(m.id);all.push(m);}
+  }
+  pages++;
+  report('Leyendo historial: '+all.length+' mensajes encontrados…');
+  if(!data.hasMore)break;
+  if(pages>1000 || data.messages.length===0)throw new Error('El historial supera el límite de exportación.');
+  const cursor=data.messages[0].created_at;
+  if(!cursor||cursor===before)throw new Error('No se pudo avanzar en el historial antiguo.');
+  before=cursor;
+ }while(true);
+ return all.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)||a.id.localeCompare(b.id));
+}
+async function readMedia(row){
+ const res=await fetchJson('/api/chat-file?path='+encodeURIComponent(row.archivo_path));
+ if(typeof res.url!=='string')throw new Error('No se obtuvo el enlace privado del archivo.');
+ const link=new URL(res.url);
+ if(link.protocol!=='https:'||!link.hostname.endsWith('.supabase.co'))throw new Error('Destino de archivo inesperado.');
+ const file=await fetch(link.href,{credentials:'omit',cache:'no-store'});
+ if(!file.ok)throw new Error('No se pudo descargar el archivo ('+file.status+').');
+ const blob=await file.blob();
+ if(blob.size>5*1024*1024)throw new Error('Supera el máximo de 5 MB que admite Android.');
+ if(blob.size===0)throw new Error('Archivo vacío.');
+ return new Uint8Array(await blob.arrayBuffer());
+}
+async function buildBackup(rows){
+ const result=[],problems=[],total=rows.length;
+ let mediaBytes=0;
+ bar.hidden=false;bar.value=0;
+ for(let i=0;i<rows.length;i++){
+  const m=rows[i],sender=m.nombre.toLowerCase();
+  const timestamp=Date.parse(m.created_at);
+  if(!Number.isFinite(timestamp))throw new Error('Fecha de mensaje no reconocida.');
+  let contents=(m.contenido||'').toString();
+  const attachment=!!m.archivo_path, hasText=contents.trim().length>0;
+  if(hasText){
+   result.push({id:m.id,sender,body:m.respuesta_nombre?previewReply(m,contents):contents,createdAt:timestamp,sent:true});
+  }
+  if(attachment){
+   const mime=m.archivo_tipo||'';
+   const kind=mime.startsWith('image/')?'image':mime.startsWith('audio/')?'audio':null;
+   const label=String(m.archivo_nombre||'Archivo de Michi V10').slice(0,130);
+   let bytes=null,reason='';
+   if(!kind)reason='Tipo de archivo no compatible todavía con la importación Android.';
+   else if(mediaBytes>65*1024*1024)reason='Se alcanzó el límite de tamaño para esta copia.';
+   else try {
+    bytes=await readMedia(m);
+    if(mediaBytes+bytes.length>65*1024*1024){bytes=null;reason='La copia excedería 65 MB de archivos.';}
+   }catch(e){reason=e.message;}
+   if(bytes){
+    const id=hasText?await uniqueMediaId(m.id):m.id;
+    mediaBytes+=bytes.length;
+    result.push({id,sender,body:'M2|'+kind+'|'+label,createdAt:timestamp+(hasText?1:0),sent:true,media:b64(bytes)});
+   }else{
+    const note='📎 Adjunto pendiente en Michi V10: '+label+' ('+reason+')';
+    problems.push(label+': '+reason);
+    if(!hasText)result.push({id:m.id,sender,body:note,createdAt:timestamp,sent:true});
+    else result.push({id:await uniqueMediaId(m.id),sender,body:note,createdAt:timestamp+1,sent:true});
+   }
+  }
+  if(!attachment&&!hasText)result.push({id:m.id,sender,body:'[Mensaje vacío de Michi V10]',createdAt:timestamp,sent:true});
+  bar.value=Math.round((i+1)/Math.max(total,1)*100);
+  if(i%5===0||i===rows.length-1)report('Preparando '+(i+1)+' de '+total+' mensajes. Archivos: '+(mediaBytes/1024/1024).toFixed(1)+' MB.');
+ }
+ return {doc:{version:2,app:'michi',messages:result},problems,mediaBytes};
+}
+async function makeFile(doc,password){
+ // Coincide exactamente con el formato cifrado BackupIO de Nuestro Chat Android.
+ const salt=crypto.getRandomValues(new Uint8Array(16));
+ const iv=crypto.getRandomValues(new Uint8Array(12));
+ const pass=await crypto.subtle.importKey('raw',utf8.encode(password),'PBKDF2',false,['deriveKey']);
+ const key=await crypto.subtle.deriveKey(
+   {name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},pass,
+   {name:'AES-GCM',length:256},false,['encrypt']);
+ const ciphertext=new Uint8Array(await crypto.subtle.encrypt(
+   {name:'AES-GCM',iv,tagLength:128},key,utf8.encode(JSON.stringify(doc))));
+ const outer={format:'michi-encrypted-backup-v2',salt:b64(salt),iv:b64(iv),content:b64(ciphertext)};
+ return new Blob([JSON.stringify(outer)],{type:'application/octet-stream'});
+}
+btn.addEventListener('click',async()=>{
+ if(!window.isSecureContext||!crypto.subtle){report('Se necesita un navegador actualizado y HTTPS.',true);return;}
+ const pass=$('password').value;
+ if(pass.length<12){report('La contraseña debe tener al menos 12 caracteres.',true);return;}
+ if(pass!==$('confirm').value){report('Las contraseñas no coinciden.',true);return;}
+ btn.disabled=true;warn.hidden=true;
+ try{
+  report('Comprobando tu sesión de Michi V10…');
+  const auth=await fetchJson('/api/auth');
+  if(!auth.authenticated)throw new Error('Primero entra a Michi V10 con el código habitual.');
+  const rows=await getRows();
+  if(!rows.length)throw new Error('Todavía no hay mensajes que exportar.');
+  const backup=await buildBackup(rows);
+  report('Cifrando la copia en tu navegador…');
+  const file=await makeFile(backup.doc,pass);
+  const link=document.createElement('a');link.href=URL.createObjectURL(file);
+  link.download='Michi_V10_para_Android_'+new Date().toISOString().slice(0,10)+'.michi';
+  document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(link.href),60000);
+  report('✓ Archivo cifrado preparado: '+rows.length+' mensajes originales, '+backup.doc.messages.length+
+    ' entradas restaurables y '+(backup.mediaBytes/1024/1024).toFixed(1)+' MB de fotos/audios. Comprueba que terminó la descarga.');
+  if(backup.problems.length){
+   warn.hidden=false;warn.textContent='Estos archivos NO pudieron incorporarse. Consérvalos en Michi V10 y expórtalos por separado:\n'+
+     backup.problems.slice(0,30).join('\n')+
+     (backup.problems.length>30?'\nY '+(backup.problems.length-30)+' más.':'');
+  }
+ }catch(e){report('No se creó la copia: '+e.message,true);}
+ finally{btn.disabled=false;bar.hidden=true;$('password').value='';$('confirm').value='';}
+});
+</script>
+</body>
+</html>

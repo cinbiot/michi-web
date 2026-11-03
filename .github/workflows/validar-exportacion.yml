@@ -1,0 +1,23 @@
+name: Validar exportación de Michi V10 a Android
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "exportar-android.html"
+      - "pruebas/validar-exportador.mjs"
+      - ".github/workflows/validar-exportacion.yml"
+  push:
+    branches: [main]
+    paths:
+      - "exportar-android.html"
+      - "pruebas/validar-exportador.mjs"
+      - ".github/workflows/validar-exportacion.yml"
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node pruebas/validar-exportador.mjs

@@ -287,7 +287,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL VIDEOS -->
 <div id="panel-videos">
   <div class="panel-header">
-    <div class="panel-title">🎬 Nuestros Momentos</div>
+    <div class="panel-title">Nuestros Momentos</div>
     <button class="panel-close" onclick="cerrarPanel('panel-videos')">×</button>
   </div>
   <div class="panel-body" id="lista-videos"><div class="loading">Cargando...</div></div>
@@ -401,7 +401,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
     <div class="sorpresa-emoji" id="sor-emoji">✨</div>
     <div class="sorpresa-titulo" id="sor-titulo">Algo especial para ti</div>
     <div class="sorpresa-desc" id="sor-desc"></div>
-    <a id="sor-link" href="#" class="sorpresa-btn" target="_blank">Ver ahora ❤️</a>
+    <a id="sor-link" href="#" class="sorpresa-btn" target="_blank" rel="noopener noreferrer">Ver ahora ❤️</a>
     <div class="cerrar-sorpresa" onclick="cerrarSorpresa()">Ya lo vi, guardarlo ✓</div>
   </div>
 </div>
@@ -409,7 +409,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL CARTAS -->
 <div id="panel-cartas">
   <div class="panel-header">
-    <div class="panel-title">💌 Nuestra Biblioteca</div>
+    <div class="panel-title">Nuestra Biblioteca</div>
     <button class="panel-close" onclick="cerrarPanel('panel-cartas')">×</button>
   </div>
   <div class="panel-body">
@@ -436,7 +436,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL FOTOS -->
 <div id="panel-fotos">
   <div class="panel-header">
-    <div class="panel-title">📷 Nuestros Recuerdos</div>
+    <div class="panel-title">Nuestros Recuerdos</div>
     <button class="panel-close" onclick="cerrarPanel('panel-fotos')">×</button>
   </div>
   <div class="panel-body">
@@ -447,7 +447,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL SORPRESAS -->
 <div id="panel-sorpresas">
   <div class="panel-header">
-    <div class="panel-title">✨ Momentos especiales</div>
+    <div class="panel-title">Momentos especiales</div>
     <button class="panel-close" onclick="cerrarPanel('panel-sorpresas')">×</button>
   </div>
   <div class="panel-body" id="lista-sorpresas"><div class="loading">Cargando...</div></div>
@@ -709,10 +709,15 @@ async function abrirSorpresas(){
   lista.innerHTML='';
   sorpresas.forEach(s=>{
     const fecha=new Date(s.created_at).toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});
-    const a=document.createElement('a'); a.className='sorpresa-item';
-    a.href=s.url||'#'; if(s.url) a.target='_blank';
-    a.innerHTML=`<div class="sorpresa-item-emoji">${s.emoji||'✨'}</div><div class="sorpresa-item-info"><div class="sorpresa-item-titulo">${s.titulo}</div><div class="sorpresa-item-fecha">${fecha}</div></div><div class="carta-arrow">›</div>`;
-    lista.appendChild(a);
+    const a=document.createElement('a');a.className='sorpresa-item';
+    a.href=s.url||'#';
+    if(s.url){a.target='_blank';a.rel='noopener noreferrer';}
+    const emoji=document.createElement('div');emoji.className='sorpresa-item-emoji';emoji.textContent=s.emoji||'✨';
+    const info=document.createElement('div');info.className='sorpresa-item-info';
+    const titulo=document.createElement('div');titulo.className='sorpresa-item-titulo';titulo.textContent=s.titulo||'Una sorpresa especial';
+    const fech=document.createElement('div');fech.className='sorpresa-item-fecha';fech.textContent=fecha;
+    const arrow=document.createElement('div');arrow.className='carta-arrow';arrow.textContent='›';
+    info.append(titulo,fech);a.append(emoji,info,arrow);lista.appendChild(a);
   });
 }
 

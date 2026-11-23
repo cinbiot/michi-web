@@ -210,6 +210,10 @@
   background:linear-gradient(90deg,transparent,rgba(238,173,205,.37),transparent)
 }
 #screen-reveal .letter-section{width:100%;max-width:none;gap:14px;margin:0}
+#screen-reveal #cinema-ultima-carta{scroll-margin-top:125px}
+#screen-reveal .carta-mes-wrap{flex-direction:column;align-items:stretch;gap:17px}
+#screen-reveal .carta-box{width:100%;flex:auto}
+#screen-reveal #cinema-ultima-carta .cinema-action{align-self:flex-end}
 #screen-reveal .letter-heading h2{font-size:clamp(30px,4vw,44px)}
 #screen-reveal .carta-box{max-width:none;background:linear-gradient(150deg,rgba(33,25,47,.9),rgba(12,17,39,.89))}
 #screen-reveal .hoja-btn{background:linear-gradient(155deg,rgba(75,43,72,.48),rgba(18,26,48,.85))}

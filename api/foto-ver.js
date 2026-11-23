@@ -1,6 +1,64 @@
 // Proyecto Michi — acceso autenticado a las fotos registradas en la galería.
 // Compatible con las fotos antiguas en el bucket "media" y las nuevas en "chat-archivos".
 const C = require('../lib/michi-common');
+const Thumb=require('../lib/michi-photo-thumbnails');
+const PREVIEW_BUCKET='chat-archivos';
+const SOURCE_MAX=22*1024*1024;
+function storageBase(){
+  const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+  const key=String(process.env.SUPABASE_SERVICE_ROLE_KEY||'');
+  if(!base.startsWith('https://')||!key)throw Error('Configuración de almacenamiento no disponible');
+  return {base,key};
+}
+function headersFor(key){
+  return {apikey:key,Authorization:'Bearer '+key};
+}
+async function existsThumbnail(bucket,path){
+  const {base,key}=storageBase();
+  const url=base+'/storage/v1/object/info/'+bucket+'/'+path.split('/').map(encodeURIComponent).join('/');
+  const resp=await fetch(url,{headers:headersFor(key),signal:AbortSignal.timeout(9000)});
+  if(resp.ok)return true;
+  if([400,404].includes(resp.status))return false;
+  throw Error('Error consultando miniatura privada: '+resp.status);
+}
+async function signedObject(bucket,path,expiresIn=240){
+  const {base}=storageBase();
+  const d=await C.supabaseRequest('/storage/v1/object/sign/'+bucket+'/'+path.split('/').map(encodeURIComponent).join('/'),{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn})
+  });
+  return urlFirmada(base,d?.signedURL||d?.signedUrl);
+}
+async function originalBytes(source){
+  const r=await fetch(source,{signal:AbortSignal.timeout(19000)});
+  if(!r.ok||!r.body)throw Error('No se pudo obtener la foto original');
+  const stated=Number(r.headers.get('content-length')||0);
+  if(stated>SOURCE_MAX)throw Error('Original demasiado grande para miniatura');
+  const chunks=[];let size=0;
+  for await (const chunk of r.body){
+    size+=chunk.byteLength;
+    if(size>SOURCE_MAX)throw Error('Original supera límite de vista previa');
+    chunks.push(Buffer.from(chunk));
+  }
+  if(size<16)throw Error('Archivo de fotografía vacío');
+  return Buffer.concat(chunks,size);
+}
+async function saveThumbnail(bucket,path,bytes){
+  const {base,key}=storageBase();
+  const target=base+Thumb.remotePath(bucket,path);
+  const response=await fetch(target,{
+    method:'POST',
+    headers:{...headersFor(key),'Content-Type':'image/webp','cache-control':'3600','x-upsert':'false'},
+    body:bytes,signal:AbortSignal.timeout(14000)
+  });
+  // Dos dispositivos pueden pedir a la vez la misma foto. El segundo upload
+  // puede recibir 400/409 porque ya existe; eso no invalida la miniatura.
+  if(!response.ok){
+    if([400,409].includes(response.status)&&await existsThumbnail(bucket,path))return true;
+    const msg=(await response.text()).slice(0,180);
+    throw Error('No se pudo guardar la miniatura: '+response.status+' '+msg);
+  }
+  return true;
+}
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function origenStorage(item) {
@@ -47,42 +105,40 @@ module.exports=async function handler(req,res){
     const foto=Array.isArray(fotos)?fotos[0]:null;
     if(!foto) return C.fail(res,404,'Esta fotografía no está registrada.');
     const {bucket,path}=origenStorage(foto);
-    // Foto completa: se sigue sirviendo exactamente como antes.
-    // Miniaturas: Vercel reduce la foto con Sharp SOLO después de validar sesión.
-    // Conservar este mismo endpoint evita crear la función número 13 en Hobby.
+    // Las miniaturas quedan guardadas UNA sola vez en el bucket privado.
+    // El original y el acceso con sesión permanecen como estaban.
     const mini=req.query.mini==='1';
     const hero=req.query.size==='hero';
-    const firmado=await C.supabaseRequest('/storage/v1/object/sign/'+bucket+'/'+path.split('/').map(encodeURIComponent).join('/'),{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:120})
-    });
-    const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
-    const target=urlFirmada(base,firmado?.signedURL||firmado?.signedUrl);
     if(!mini){
       res.setHeader('Cache-Control','private, no-store');
-      return res.redirect(302,target);
+      return res.redirect(302,await signedObject(bucket,path));
+    }
+    const thumbPath=Thumb.pathFor(bucket,path,hero);
+    try{
+      if(await existsThumbnail(PREVIEW_BUCKET,thumbPath)){
+        res.setHeader('Cache-Control','private, max-age=45');
+        res.setHeader('Vary','Cookie');
+        return res.redirect(302,await signedObject(PREVIEW_BUCKET,thumbPath));
+      }
+    }catch(existsError){
+      // Si la consulta de metadatos falla, reintentamos generar la miniatura
+      // sin impedir que el usuario vea la foto.
+      console.warn('Consulta de miniatura Michi:',existsError.message);
     }
 
-    const response=await fetch(target,{signal:AbortSignal.timeout(18000)});
-    if(!response.ok||!response.body)throw Error('El archivo original no está disponible');
-    const contentLength=Number(response.headers.get('content-length')||0);
-    const limit=22*1024*1024;
-    if(contentLength>limit)throw Error('Fotografía demasiado grande para miniatura');
-    const chunks=[];
-    let total=0;
-    for await(const chunk of response.body){
-      total+=chunk.byteLength;
-      if(total>limit)throw Error('Fotografía demasiado grande para miniatura');
-      chunks.push(Buffer.from(chunk));
-    }
-    if(total<16)throw Error('Fotografía vacía');
-    const input=Buffer.concat(chunks,total);
-    // Importación diferida: si falla una miniatura, el original sigue funcionando.
+    const original=await originalBytes(await signedObject(bucket,path));
     const sharp=require('sharp');
-    const output=await sharp(input,{limitInputPixels:40000000})
+    const output=await sharp(original,{limitInputPixels:40000000})
       .rotate()
       .resize(hero?1280:600,hero?720:460,
         {fit:'cover',position:'attention',withoutEnlargement:true})
       .webp({quality:hero?78:70,effort:3}).toBuffer();
+    try{
+      await saveThumbnail(PREVIEW_BUCKET,thumbPath,output);
+    }catch(writeError){
+      // Una miniatura nueva sigue siendo útil si falla su persistencia.
+      console.warn('No se pudo persistir miniatura Michi:',writeError.message);
+    }
     res.setHeader('Content-Type','image/webp');
     res.setHeader('Cache-Control','private, max-age=600');
     res.setHeader('Vary','Cookie');

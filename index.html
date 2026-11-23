@@ -187,6 +187,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 @media(max-width:570px){.private-card{padding:30px 20px}.private-card h2{font-size:2.8rem}#btn-chat{bottom:12px}}
 </style>
 <link rel="stylesheet" href="/css/experiencia-visual.css"/>
+<link rel="stylesheet" href="/css/experiencia-cinematica.css"/>
 </head>
 <body>
 
@@ -294,70 +295,102 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 
 <!-- PANTALLA REVEAL -->
 <div id="screen-reveal">
+  <nav class="cinema-bar" aria-label="Navegación de nuestra página">
+    <button type="button" class="cinema-wordmark" data-cinema-go="inicio" aria-label="Volver al inicio">Michi <span>&amp;</span> Coquito</button>
+    <div class="cinema-menu">
+      <button type="button" data-cinema-go="inicio">Inicio</button>
+      <button type="button" data-cinema-go="fotos">Recuerdos</button>
+      <button type="button" data-cinema-go="cartas">Cartas</button>
+      <button type="button" data-cinema-go="videos">Videos</button>
+      <button type="button" data-cinema-go="sorpresas">Sorpresas</button>
+    </div>
+    <div class="cinema-utilities">
+      <button class="cinema-utility" type="button" id="cinema-music" data-cinema-go="musica" aria-pressed="false">♫ Música</button>
+      <button class="cinema-utility" type="button" data-cinema-go="salir" aria-label="Cerrar sesión privada">Salir</button>
+    </div>
+  </nav>
   <canvas id="canvas3d"></canvas>
   <div class="reveal-wrap">
-    <div class="deco-line">Un capítulo de nuestra historia</div>
-    <div class="page-title" id="page-title">Para mi<br/>Michi</div>
-    <p class="hero-subtitle">Cartas, recuerdos y pequeños instantes que quiero seguir guardando <strong>contigo</strong>.</p>
-    <div class="hero-divider" aria-hidden="true"></div>
-    <div style="display:flex;gap:12px;align-items:center">
-      <svg width="28" height="28" viewBox="0 0 32 32"><g transform="translate(16,16)"><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/><circle cx="0" cy="0" r="3.5" fill="#FFD700"/></g></svg>
-      <span style="color:var(--plomo);font-size:11px;letter-spacing:3px">✦ CON TODO MI AMOR ✦</span>
-      <svg width="28" height="28" viewBox="0 0 32 32"><g transform="translate(16,16)"><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/><circle cx="0" cy="0" r="3.5" fill="#FFD700"/></g></svg>
+    <div id="cinema-root">
+      <section class="cinema-hero" id="cinema-hero" aria-label="Nuestra historia destacada">
+        <img class="cinema-hero-image" id="cinema-hero-image" alt="Un recuerdo de nuestra galería privada" decoding="async"/>
+        <div class="cinema-hero-flourish" aria-hidden="true"></div>
+        <div class="cinema-floral" aria-hidden="true">✦</div>
+        <div class="cinema-hero-copy">
+          <div class="cinema-kicker">Una historia escrita entre dos</div>
+          <h1 class="cinema-hero-title" id="page-title">Para mi Michi</h1>
+          <p>Un rincón para todas las cartas que merecen quedarse, las fotografías que cuentan nuestra historia y los momentos que seguimos construyendo.</p>
+          <div class="cinema-hero-actions">
+            <button type="button" class="cinema-action primary" data-cinema-go="fotos">Explorar nuestros recuerdos&nbsp; ↗</button>
+            <button type="button" class="cinema-action secondary" data-cinema-go="ultima">Leer nuestra última carta</button>
+          </div>
+        </div>
+        <span class="cinema-hero-footer">Una página para nosotros dos · ♥</span>
+      </section>
+      <div class="cinema-scroll" aria-hidden="true"><span></span>Un recorrido por lo nuestro<span></span></div>
+      <div class="cinema-lanes" aria-label="Nuestras colecciones">
+        <section class="cinema-lane" aria-labelledby="cinema-fotos-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-fotos-heading" class="cinema-lane-heading">Momentos en fotografías</h2>
+              <p class="cinema-lane-note">Instantes para volver a mirar</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="fotos">Ver galería&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="fotos" data-cinema-direction="previous" aria-label="Fotografías anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="fotos" data-cinema-direction="next" aria-label="Fotografías siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-fotos-track" aria-label="Fotografías recientes"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Preparando nuestros recuerdos…</h3><p>Las imágenes aparecerán aquí después de desbloquear.</p></div></div></div>
+        </section>
+        <section class="cinema-lane" aria-labelledby="cinema-cartas-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-cartas-heading" class="cinema-lane-heading">Cartas que guardan lo nuestro</h2>
+              <p class="cinema-lane-note">Una biblioteca escrita con cariño</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="cartas">Abrir biblioteca&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="cartas" data-cinema-direction="previous" aria-label="Cartas anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="cartas" data-cinema-direction="next" aria-label="Cartas siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-cartas-track" aria-label="Cartas anteriores"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Abriendo nuestras cartas…</h3></div></div></div>
+        </section>
+        <section class="cinema-lane" aria-labelledby="cinema-videos-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-videos-heading" class="cinema-lane-heading">Instantes en movimiento</h2>
+              <p class="cinema-lane-note">Nuestros videos especiales</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="videos">Ver videos&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="videos" data-cinema-direction="previous" aria-label="Videos anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="videos" data-cinema-direction="next" aria-label="Videos siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-videos-track" aria-label="Videos guardados"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Preparando nuestros videos…</h3></div></div></div>
+        </section>
+        <section class="cinema-lane" aria-labelledby="cinema-sorpresas-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-sorpresas-heading" class="cinema-lane-heading">Detalles que sorprenden</h2>
+              <p class="cinema-lane-note">Hay cosas que es bonito descubrir</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="sorpresas">Ver sorpresas&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="sorpresas" data-cinema-direction="previous" aria-label="Sorpresas anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="sorpresas" data-cinema-direction="next" aria-label="Sorpresas siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-sorpresas-track" aria-label="Sorpresas guardadas"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Preparando nuestras sorpresas…</h3></div></div></div>
+        </section>
+      </div>
+      <div class="cinema-feature-divider" aria-hidden="true"></div>
     </div>
-
-    <nav class="experience-nav" aria-label="Explorar nuestra página">
-      <button type="button" class="experience-tile" onclick="abrirPanelCartas()">
-        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">💌</span>
-        <span class="tile-heading">Nuestra Biblioteca</span>
-        <span class="tile-note">Todas nuestras cartas</span>
-      </button>
-      <button type="button" class="experience-tile" onclick="abrirFotos()">
-        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">📷</span>
-        <span class="tile-heading">Nuestros Recuerdos</span>
-        <span class="tile-note">Momentos en fotografías</span>
-      </button>
-      <button type="button" class="experience-tile" onclick="abrirSorpresas()">
-        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">✨</span>
-        <span class="tile-heading">Sorpresas</span>
-        <span class="tile-note">Pequeños detalles para ti</span>
-      </button>
-      <button type="button" class="experience-tile" onclick="abrirVideos()">
-        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">🎬</span>
-        <span class="tile-heading">Nuestros Momentos</span>
-        <span class="tile-note">Videos para recordar</span>
-      </button>
-    </nav>
-    <section class="letter-section" aria-label="La última carta">
-      <div class="letter-heading"><h2>Nuestra última carta</h2><span>Escrita con cariño</span></div>
+    <section class="letter-section" id="cinema-ultima-carta" aria-label="La última carta">
+      <div class="letter-heading"><h2>Nuestra última carta</h2><span id="featured-title">Escrita con cariño</span></div>
       <div class="carta-mes-wrap">
       <div id="carta-container" class="carta-box loading">Cargando carta...</div>
-      <div class="hoja-btn" role="button" tabindex="0" aria-label="Abrir nuestra biblioteca de cartas" onclick="abrirPanelCartas()">
-        <svg width="52" height="64" viewBox="0 0 52 64" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="papelg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C8A97A"/><stop offset="100%" stop-color="#9E7A4A"/></linearGradient></defs>
-          <rect x="2" y="2" width="48" height="60" rx="3" fill="url(#papelg)" opacity="0.9"/>
-          <rect x="2" y="2" width="48" height="60" rx="3" fill="none" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="16" x2="42" y2="16" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="22" x2="38" y2="22" stroke="#7A5A30" stroke-width="0.8" opacity="0.4"/>
-          <line x1="10" y1="28" x2="42" y2="28" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="34" x2="35" y2="34" stroke="#7A5A30" stroke-width="0.8" opacity="0.4"/>
-          <line x1="10" y1="40" x2="42" y2="40" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="46" x2="30" y2="46" stroke="#7A5A30" stroke-width="0.8" opacity="0.4"/>
-          <text x="26" y="58" text-anchor="middle" font-size="12" fill="#7A5A30" opacity="0.7" font-family="serif">✒</text>
-          <path d="M38 2 L50 14 L38 14 Z" fill="#9E7A4A" opacity="0.6"/>
-        </svg>
-        <span>Ver biblioteca</span>
-      </div>
+      <button type="button" class="cinema-action secondary" onclick="abrirPanelCartas()" style="align-self:flex-end">Abrir nuestra biblioteca&nbsp; ↗</button>
       </div>
       <div id="carta-portada-meta" aria-live="polite"></div>
     </section>
 
     <div class="firma" id="firma-txt">Siempre tuyo ❤</div>
-    <div>
-      <span class="heart-beat">🌼</span>
-      <span class="heart-beat" style="animation-delay:.2s">❤️</span>
-      <span class="heart-beat" style="animation-delay:.4s">🌼</span>
-    </div>
+    <div class="hero-signature" aria-hidden="true">✦ &nbsp; Mi pequeña colección de nosotros &nbsp; ✦</div>
     <p class="reveal-footer">Una pequeña parte de nosotros, para seguir escribiendo nuestra historia. ♥</p>
   </div>
 </div>
@@ -555,6 +588,7 @@ function unlock(){
     });
     initCanvas();
     loadContent();
+    if(window.MichiCinema)window.MichiCinema.init();
   },1000);
 }
 
@@ -573,7 +607,7 @@ async function loadContent(){
       }
       el.className='carta-box';
       el.innerHTML=carta.contenido.split('\n\n').map(p=>{const el=document.createElement('p');el.textContent=p;return el.outerHTML;}).join('');
-      if(carta.titulo) document.getElementById('page-title').textContent=carta.titulo;
+      if(carta.titulo) document.getElementById('featured-title').textContent=carta.titulo;
       if(carta.firma) document.getElementById('firma-txt').textContent=carta.firma;
     } else {
       el.className='carta-box';
@@ -764,6 +798,7 @@ function initCanvas(){
 </script>
 <!-- Amplía fotografías sin alterar cartas, chat ni Supabase. -->
 <script defer src="/js/experiencia-visual.js"></script>
+<script defer src="/js/experiencia-cinematica.js"></script>
 <script defer src="/js/visor-fotos.js"></script>
 </body>
 </html>

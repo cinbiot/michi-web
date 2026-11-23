@@ -154,6 +154,7 @@
         card=makeCard('letter',item.titulo||'Unas palabras para ti',
           fechaGuardada(item.created_at),null,
           ()=>{if(typeof abrirCarta==='function')abrirCarta(item);},item.contenido,position===0);
+        if(typeof temaDeCarta==='function')card.dataset.tema=temaDeCarta(item);
       }else if(kind==='videos'){
         card=makeCard('video',item.descripcion||'Un momento para volver a ver',
           'Reproducir en nuestros videos',imagenYoutube(item.url),

@@ -1,0 +1,26 @@
+name: Validar experiencia cinematográfica Michi
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "css/experiencia-cinematica.css"
+      - "js/experiencia-cinematica.js"
+      - "pruebas/validar-cinematica.mjs"
+      - ".github/workflows/validar-cinematica.yml"
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "css/experiencia-cinematica.css"
+      - "js/experiencia-cinematica.js"
+      - "pruebas/validar-cinematica.mjs"
+      - ".github/workflows/validar-cinematica.yml"
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node pruebas/validar-cinematica.mjs

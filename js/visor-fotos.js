@@ -207,6 +207,16 @@
     botonCerrar.focus({ preventScroll: true });
   }
 
+  // Abrir una fotografía específica desde la portada sin pasar por la galería.
+  // Solo acepta la ruta privada autenticada que ya utiliza la propia galería.
+  function abrirPorUrl(url,descripcion){
+    if(typeof url!=='string'||!/^\/api\/foto-ver\?id=[a-z0-9-]+$/i.test(url))return false;
+    if(!visor)return false;
+    abrir({src:url,alt:descripcion||'Fotografía de nuestros recuerdos',isConnected:false});
+    return true;
+  }
+  window.MichiFotoVisor={abrirPorUrl};
+
   function cambiarZoom() {
     if (visor.hidden || !imagen.naturalWidth) return;
     ampliada = !ampliada;

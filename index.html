@@ -302,7 +302,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
       <button type="button" data-cinema-go="fotos">Recuerdos</button>
       <button type="button" data-cinema-go="cartas">Cartas</button>
       <button type="button" data-cinema-go="videos">Videos</button>
-      <button type="button" data-cinema-go="sorpresas">Sorpresas</button>
+      <button type="button" data-cinema-go="sorpresas">Sorpresas <span id="cinema-surprise-indicator" class="cinema-dot" hidden aria-label="Hay sorpresas nuevas"></span></button>
     </div>
     <div class="cinema-utilities">
       <button class="cinema-utility" type="button" id="cinema-music" data-cinema-go="musica" aria-pressed="false">♫ Música</button>
@@ -620,7 +620,11 @@ async function loadContent(){
     const{data:sorpresa}=await sorpresaQuery.single();
     if(sorpresa) mostrarSorpresa(sorpresa);
     const{data:noVistas}=await sb.from('sorpresas').select('id').eq('vista',false);
-    if(noVistas&&noVistas.length>0) document.getElementById('btn-corazon').classList.add('tiene-nuevo');
+    if(noVistas&&noVistas.length>0){
+      document.getElementById('btn-corazon').classList.add('tiene-nuevo');
+      const indicator=document.getElementById('cinema-surprise-indicator');
+      if(indicator)indicator.hidden=false;
+    }
   }catch(e){
     const el=document.getElementById('carta-container');
     el.className='carta-box';
@@ -646,6 +650,8 @@ async function cerrarSorpresa(){
   if(sorpresaActual&&!IS_PREVIEW){
     await sb.from('sorpresas').update({vista:true}).eq('id',sorpresaActual.id);
     document.getElementById('btn-corazon').classList.remove('tiene-nuevo');
+    const indicator=document.getElementById('cinema-surprise-indicator');
+    if(indicator)indicator.hidden=true;
   }
   document.getElementById('sorpresa-overlay').classList.remove('visible');
   reanudarPorContenido(); // reanuda música al cerrar sorpresa

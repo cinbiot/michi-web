@@ -47,12 +47,30 @@ module.exports=async function handler(req,res){
     const foto=Array.isArray(fotos)?fotos[0]:null;
     if(!foto) return C.fail(res,404,'Esta fotografía no está registrada.');
     const {bucket,path}=origenStorage(foto);
+    // Vista previa firmada: conserva esta misma ruta para no superar el límite
+    // de funciones Vercel Hobby. La foto original nunca se transforma ni sustituye.
+    const mini=req.query.mini==='1';
+    const hero=req.query.size==='hero';
+    const transform=mini?(hero?
+      {width:1280,height:720,resize:'cover',quality:78}:
+      {width:600,height:460,resize:'cover',quality:70}):null;
     const firmado=await C.supabaseRequest('/storage/v1/object/sign/'+bucket+'/'+path.split('/').map(encodeURIComponent).join('/'),{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:120})
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(mini?{expiresIn:120,transform}:{expiresIn:120})
     });
     const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
-    const target=urlFirmada(base,firmado?.signedURL||firmado?.signedUrl);
-    res.setHeader('Cache-Control','private, no-store');
+    let target=urlFirmada(base,firmado?.signedURL||firmado?.signedUrl);
+    if(mini){
+      const signed=new URL(target);
+      if(signed.pathname.startsWith('/storage/v1/object/sign/')){
+        signed.pathname=signed.pathname.replace('/storage/v1/object/sign/','/storage/v1/render/image/sign/');
+      }else if(!signed.pathname.startsWith('/storage/v1/render/image/sign/')){
+        throw Error('Ruta de imagen transformada no admitida');
+      }
+      target=signed.toString();
+    }
+    res.setHeader('Cache-Control',mini?'private, max-age=90':'private, no-store');
+    if(mini)res.setHeader('Vary','Cookie');
     return res.redirect(302,target);
   }catch(e){
     console.error('Galería Michi:',e.message);

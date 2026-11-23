@@ -766,8 +766,19 @@ async function abrirFotos(){
   if(!fotos||fotos.length===0){grid.innerHTML='<div class="empty-msg">Aún no hay fotos guardadas.</div>';return;}
   grid.innerHTML='';
   fotos.forEach(f=>{
-    const img=document.createElement('img'); img.src='/api/foto-ver?id='+encodeURIComponent(f.id); img.alt='Fotografía de nuestros momentos'; img.loading='lazy';
-    img.onerror=()=>{img.removeAttribute('src');img.alt='No se puede mostrar esta foto. Comprueba el archivo en Supabase Storage.';};
+    const img=document.createElement('img');
+    img.alt='Fotografía de nuestros momentos';img.loading='lazy';img.decoding='async';
+    img.width=460;img.height=460;
+    img.onerror=()=>{
+      if(!img.dataset.originalTried){
+        img.dataset.originalTried='1';
+        img.src='/api/foto-ver?id='+encodeURIComponent(f.id);
+      }else{
+        img.removeAttribute('src');
+        img.alt='No se puede mostrar esta foto. Comprueba el archivo en Supabase Storage.';
+      }
+    };
+    img.src='/api/foto-ver?id='+encodeURIComponent(f.id)+'&mini=1';
     grid.appendChild(img);
   });
 }

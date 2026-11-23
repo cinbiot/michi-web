@@ -198,6 +198,21 @@
   color:#fff0f5;text-wrap:balance}
 .cinema-card-detail{font:400 11px/1.4 'Montserrat',sans-serif;color:#e8cddb;opacity:.9}
 .cinema-card.photo{background:linear-gradient(130deg,#482944,#1c2540)}
+.cinema-card.photo::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 13%,rgba(250,208,227,.12) 48%,transparent 73%);
+  background-size:260% 100%;
+  animation:michi-card-skeleton 2.2s ease-in-out infinite;
+  z-index:1;
+}
+.cinema-card.photo.is-ready::before,
+.cinema-card.photo.image-unavailable::before{animation:none;opacity:0}
+.cinema-card.photo img{opacity:0;transition:opacity .48s ease,transform .5s ease}
+.cinema-card.photo.is-ready img{opacity:1}
+@keyframes michi-card-skeleton{
+  0%{background-position:100% 0}
+  100%{background-position:-100% 0}
+}
 .cinema-card.letter{
   background:radial-gradient(ellipse at 70% 22%,rgba(191,100,143,.22),transparent 53%),
    linear-gradient(135deg,#1c1d38,#36253f 72%,#141b31)
@@ -316,6 +331,7 @@
 }
 @media(hover:none){.cinema-card:active{transform:scale(.985)}}
 @media(prefers-reduced-motion:reduce){
+  .cinema-card.photo::before{animation:none!important}
   .cinema-track{scroll-behavior:auto}
   .cinema-hero-image,.cinema-card img,.cinema-card{transition:none!important}
 }

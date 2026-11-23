@@ -86,10 +86,12 @@
 
   function mostrarBiblioteca(cartas,featuredId){
     // La última carta permanece en portada; en la biblioteca aparecen las anteriores.
-    cartaEnPortada=featuredId===undefined||featuredId===null?null:String(featuredId);
-    cartasGuardadas=(Array.isArray(cartas)?cartas:[])
-      .filter(c=>!cartaEnPortada||String(c.id)!==cartaEnPortada)
-      .sort((a,b)=>fechaValida(b).getTime()-fechaValida(a).getTime());
+    const ordenadas=(Array.isArray(cartas)?cartas:[])
+      .slice().sort((a,b)=>fechaValida(b).getTime()-fechaValida(a).getTime());
+    cartaEnPortada=featuredId===undefined||featuredId===null
+      ? (ordenadas.length?String(ordenadas[0].id):null)
+      : String(featuredId);
+    cartasGuardadas=ordenadas.filter(c=>!cartaEnPortada||String(c.id)!==cartaEnPortada);
     if(ui.search)ui.search.value='';
     filtrar();
   }
@@ -107,6 +109,13 @@
       }
     });
   }
+  const hoja=document.querySelector('.hoja-btn');
+  if(hoja)hoja.addEventListener('keydown',event=>{
+    if(event.key==='Enter'||event.key===' '){
+      event.preventDefault();
+      if(typeof abrirPanelCartas==='function')abrirPanelCartas();
+    }
+  });
   document.addEventListener('keydown',event=>{
     if(event.key!=='Escape'||document.querySelector('.video-ampliado'))return;
     const active=['carta-abierta','panel-videos','panel-fotos',

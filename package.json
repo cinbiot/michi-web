@@ -4,7 +4,6 @@
   "version": "9.0.0",
   "type": "commonjs",
   "dependencies": {
-    "web-push": "3.6.7",
-    "sharp": "0.35.4"
+    "web-push": "3.6.7"
   }
 }

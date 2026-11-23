@@ -102,12 +102,14 @@ assert.equal(requests,4,'Consultar cuatro colecciones, una vez');
 assert.deepEqual(limits,{fotos:6,carta:7,videos:6,sorpresas:6},'Descargar solo los seis recientes y siete cartas incluyendo portada');
 for(const type of ['fotos','cartas','videos','sorpresas'])
   assert.equal(nodes['cinema-'+type+'-track'].children.length,6,'Deben verse exactamente seis '+type);
-assert.equal(nodes['cinema-hero-image'].src,'/api/foto-ver?id='+firstId,'Portada con foto privada real');
+assert.equal(nodes['cinema-hero-image'].src,
+  '/api/foto-miniatura?id='+firstId+'&size=hero','Portada con imagen optimizada autenticada');
 nodes['cinema-fotos-track'].children[0].handlers.click();
 nodes['cinema-cartas-track'].children[0].handlers.click();
 nodes['cinema-videos-track'].children[0].handlers.click();
 nodes['cinema-sorpresas-track'].children[0].handlers.click();
 assert.equal(opened.photos[0].url,'/api/foto-ver?id='+firstId,'Abrir fotografía seleccionada, no lista');
+assert(nodes['cinema-fotos-track'].children[0].children.some(n=>n.tagName==='img'&&n.src.startsWith('/api/foto-miniatura?')), 'Tarjeta usa miniatura WebP privada');
 assert.equal(opened.letters[0],'c1','Abrir carta exacta, excluyendo última de portada');
 assert.equal(opened.videos[0],'v0','Abrir video seleccionado');
 assert.equal(opened.surprises[0],'s0','Abrir sorpresa seleccionada');

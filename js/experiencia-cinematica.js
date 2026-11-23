@@ -5,6 +5,7 @@
   'use strict';
 
   let started=false;
+  const MAX_RECIENTES=6;
   const root=document.getElementById('cinema-root');
   const hero=document.getElementById('cinema-hero');
   const heroPhoto=document.getElementById('cinema-hero-image');
@@ -48,10 +49,14 @@
       return /^[a-zA-Z0-9_-]{11}$/.test(id)?'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg':null;
     }catch(e){return null;}
   }
-  function makeCard(kind,title,detail,imageUrl,action,excerpt){
+  function makeCard(kind,title,detail,imageUrl,action,excerpt,isNewest=false){
     const card=el('button','cinema-card '+kind);
     card.type='button';
-    card.setAttribute('aria-label',title||'Abrir recuerdo');
+    card.setAttribute('aria-label','Abrir '+(title||'recuerdo'));
+    if(isNewest){
+      const marker=el('span','cinema-card-featured','Más reciente');
+      card.appendChild(marker);
+    }
     if(imageUrl){
       const pic=el('img');
       pic.src=imageUrl;pic.loading='lazy';pic.decoding='async';
@@ -96,7 +101,8 @@
       empty(track,'Contenido no disponible','No pudimos cargar esta sección. Puedes intentar abrirla nuevamente.',kind);
       return;
     }
-    if(!items.length){
+    const recientes=items.slice(0,MAX_RECIENTES);
+    if(!recientes.length){
       const copy={
         fotos:'Los momentos que guardemos aparecerán aquí, con sus fotografías originales.',
         cartas:'Las cartas anteriores estarán aquí; la más reciente permanece en la portada.',
@@ -106,23 +112,37 @@
       empty(track,'Nuestro espacio sigue creciendo',copy[kind],kind);
       return;
     }
-    for(const item of items){
+    const description=document.getElementById('cinema-'+kind+'-count');
+    if(description){
+      const noun={fotos:'fotografías',cartas:'cartas',videos:'videos',sorpresas:'sorpresas'}[kind];
+      description.textContent='Las '+recientes.length+' '+noun+' más recientes · Toca para abrir';
+    }
+    for(const [position,item] of recientes.entries()){
       let card;
       if(kind==='fotos'){
         card=makeCard('photo',item.descripcion||'Un momento nuestro',
           (fechaGuardada(item.created_at)?'Guardada en '+fechaGuardada(item.created_at):'Nuestra galería'),
-          fotoUrl(item),()=>openSection('fotos'));
+          fotoUrl(item),()=>{
+            const visor=window.MichiFotoVisor;
+            if(!visor?.abrirPorUrl(fotoUrl(item),item.descripcion||'Un momento nuestro')){
+              openSection('fotos');
+            }
+          },null,position===0);
       }else if(kind==='cartas'){
         card=makeCard('letter',item.titulo||'Unas palabras para ti',
           fechaGuardada(item.created_at),null,
-          ()=>{if(typeof abrirCarta==='function')abrirCarta(item);},item.contenido);
+          ()=>{if(typeof abrirCarta==='function')abrirCarta(item);},item.contenido,position===0);
       }else if(kind==='videos'){
         card=makeCard('video',item.descripcion||'Un momento para volver a ver',
           'Reproducir en nuestros videos',imagenYoutube(item.url),
-          ()=>openSection('videos'));
+          ()=>{
+            if(typeof abrirVideos==='function')abrirVideos(item.id);
+          },null,position===0);
       }else{
         card=makeCard('surprise',item.titulo||'Algo especial para ti',
-          trim(item.descripcion,68),null,()=>openSection('sorpresas'));
+          trim(item.descripcion,68),null,()=>{
+            if(typeof mostrarSorpresa==='function')mostrarSorpresa(item);
+          },null,position===0);
       }
       track.appendChild(card);
     }
@@ -179,10 +199,10 @@
     // Cada colección se recupera una sola vez tras desbloquear; fallos aislados
     // nunca impiden ver las otras secciones.
     const queries=[
-      Promise.resolve(sb.from('fotos').select('*').order('created_at',{ascending:false}).limit(12)),
-      Promise.resolve(sb.from('carta').select('*').order('created_at',{ascending:false}).limit(10)),
-      Promise.resolve(sb.from('videos').select('*').order('created_at',{ascending:false}).limit(8)),
-      Promise.resolve(sb.from('sorpresas').select('*').order('created_at',{ascending:false}).limit(8))
+      Promise.resolve(sb.from('fotos').select('*').order('created_at',{ascending:false}).limit(MAX_RECIENTES)),
+      Promise.resolve(sb.from('carta').select('*').order('created_at',{ascending:false}).limit(MAX_RECIENTES+1)),
+      Promise.resolve(sb.from('videos').select('*').order('created_at',{ascending:false}) .limit(MAX_RECIENTES)),
+      Promise.resolve(sb.from('sorpresas').select('*').order('created_at',{ascending:false}) .limit(MAX_RECIENTES))
     ];
     const results=await Promise.allSettled(queries);
     const values=results.map(r=>{

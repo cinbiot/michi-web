@@ -150,7 +150,7 @@
             }
           },null,position===0);
         card.dataset.photoId=String(item.id||'');
-        const preview=card.querySelector('img');
+        const preview=card.querySelector?.('img');
         if(preview&&position===1){
           preview.loading='eager';
           preview.fetchPriority='high';

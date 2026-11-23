@@ -133,8 +133,13 @@ assert(cartaCss.includes('prefers-reduced-motion'),'Respeto por movimiento reduc
 assert(miniaturaApi.includes('C.isAuthorized(req)'),'Miniaturas deben exigir sesión');
 assert(miniaturaApi.includes("select=id,storage_path,url"),'Solo fotos registradas');
 assert(miniaturaApi.includes("req.query.mini==='1'"),'Miniatura opcional integrada al endpoint existente');
-assert(miniaturaApi.includes('render/image/sign'),'Transformaciones con firma temporal');
-assert(!packageInfo.dependencies.sharp,'Evitar dependencia Sharp incompatible con el despliegue actual');
+assert(miniaturaApi.includes("const sharp=require('sharp')"),'Miniatura WebP generada desde la función existente');
+assert(miniaturaApi.includes(".webp({quality:hero?78:70"),'Vista previa comprimida, original intacto');
+assert(miniaturaApi.includes("if(!mini){"),'La foto completa mantiene el flujo original');
+assert(packageInfo.dependencies.sharp==='0.35.4','Instalar conversor Sharp actualizado');
+const {readdirSync}=await import('node:fs');
+const funciones=readdirSync('api').filter(name=>name.endsWith('.js'));
+assert(funciones.length<=12,'Vercel Hobby admite como máximo 12 funciones');
 assert(nodes['cinema-fotos-track'].children[0].children.some(n=>
   n.tagName==='img' && n.src.startsWith('/api/foto-ver?') && n.src.includes('&mini=1')),
   'La tarjeta debe pedir una miniatura en lugar de la foto completa');

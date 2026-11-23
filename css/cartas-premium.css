@@ -1,0 +1,218 @@
+/* Carta premium Michi · Sobre animado y papel cálido.
+   No agrega recursos externos ni modifica el contenido guardado. */
+#carta-abierta{
+  background:radial-gradient(ellipse at 50% 1%,rgba(95,46,74,.29),transparent 46%),
+    radial-gradient(ellipse at 65% 90%,rgba(49,33,70,.2),transparent 58%),
+    rgba(5,7,17,.97);
+  overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .3s ease,visibility .3s ease;
+}
+#carta-abierta.open{opacity:1;visibility:visible;pointer-events:auto}
+.carta-escena{
+  box-sizing:border-box;max-width:860px;
+  padding:clamp(19px,3vw,32px) clamp(13px,4vw,46px) 95px;
+  margin:0 auto;position:relative;
+}
+.carta-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;margin:0 0 7px;color:#e6c7d7;
+  font:500 12px/1.5 'Montserrat',sans-serif;
+}
+.carta-topbar small{color:#ad9aaf;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+.carta-back{
+  display:inline-flex;align-items:center;gap:9px;
+  border:1px solid rgba(246,182,211,.27);border-radius:99px;
+  padding:11px 16px;min-height:43px;
+  background:rgba(29,21,42,.72);color:#f7ddea;
+  font:600 12px 'Montserrat',sans-serif;
+  cursor:pointer;transition:background .2s,border-color .2s,transform .2s;
+}
+.carta-back:hover,.carta-back:focus-visible{
+  transform:translateY(-2px);background:rgba(105,49,80,.4);
+  border-color:rgba(245,177,213,.6);
+}
+.carta-back:focus-visible{outline:2px solid #f4b8d3;outline-offset:3px}
+.carta-intro{text-align:center;margin:18px 0 14px}
+.carta-intro h3{
+  font:400 clamp(30px,5vw,44px)/1.1 'Great Vibes',cursive;
+  color:#f8e2e8;margin:0 0 4px;
+}
+.carta-intro p{
+  font:500 9px/1.5 'Montserrat',sans-serif;
+  letter-spacing:.23em;text-transform:uppercase;color:#bba8bc;
+  margin:0;
+}
+/* El sobre es únicamente una introducción visual: el texto completo queda
+   inmediatamente después, accesible y desplazable incluso sin animaciones. */
+.carta-sobre-escena{
+  display:grid;place-items:center;height:175px;
+  position:relative;margin:8px auto -40px;
+  z-index:3;pointer-events:none;perspective:600px;
+}
+.carta-sobre{
+  width:min(280px,70vw);aspect-ratio:1.58;
+  position:relative;transform-style:preserve-3d;
+  filter:drop-shadow(0 14px 15px rgba(0,0,0,.27));
+}
+.carta-sobre-fondo{
+  position:absolute;inset:0;border-radius:6px;
+  background:linear-gradient(155deg,#f0d9bf,#e2c4a7 71%,#d6ac91);
+  border:1px solid rgba(128,79,78,.3);
+}
+.carta-sobre-hoja{
+  position:absolute;inset:11% 8% 9%;border-radius:3px;
+  border:1px solid #dbc1a9;
+  background:linear-gradient(140deg,#fff7e9,#eadac6);
+  box-shadow:0 2px 8px rgba(73,42,35,.13);
+}
+.carta-sobre-hoja::before{
+  content:'Para ti';font:italic 21px/1 'Great Vibes',cursive;
+  color:#9c5775;position:absolute;top:42%;left:0;width:100%;text-align:center;
+}
+.carta-sobre-frente{
+  position:absolute;inset:0;
+  background:linear-gradient(145deg,#ecd3b8 0%,#d9b99f 55%,#edcfb7 100%);
+  clip-path:polygon(0 24%,50% 65%,100% 24%,100% 100%,0 100%);
+  border-radius:6px;
+  filter:drop-shadow(0 1px 1px rgba(115,78,66,.1));
+}
+.carta-sobre-solapa{
+  position:absolute;top:0;left:0;right:0;height:67%;
+  background:linear-gradient(155deg,#f8e4d0,#dab89d);
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  transform-origin:50% 0;
+  backface-visibility:visible;
+}
+.carta-sobre-sello{
+  width:43px;height:43px;border-radius:50%;
+  display:grid;place-items:center;position:absolute;top:48%;left:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 30% 24%,#cd8095,#985070 76%,#71384b);
+  border:3px double rgba(255,210,220,.52);
+  box-shadow:0 4px 12px rgba(73,30,47,.22);
+  color:#ffdfdf;font:400 22px 'Great Vibes',cursive;
+}
+#carta-abierta.open .carta-sobre-solapa{
+  animation:carta-abrir-solapa .62s cubic-bezier(.2,.8,.23,1) .28s both;
+}
+#carta-abierta.open .carta-sobre-sello{
+  animation:carta-abrir-sello .32s ease .13s both;
+}
+#carta-abierta.open .carta-sobre-hoja{
+  animation:carta-sacando-papel .9s cubic-bezier(.2,.8,.27,1) .42s both;
+}
+#carta-abierta.open .carta-sobre{
+  animation:carta-sobre-desaparece .38s ease 1.05s both;
+}
+@keyframes carta-abrir-solapa{
+  0%{transform:rotateX(0deg)}
+  100%{transform:rotateX(178deg)}
+}
+@keyframes carta-abrir-sello{
+  from{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  to{opacity:0;transform:translate(-50%,-80%) scale(.55)}
+}
+@keyframes carta-sacando-papel{
+  0%{transform:translateY(0)}
+  100%{transform:translateY(-55px)}
+}
+@keyframes carta-sobre-desaparece{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(25px) scale(.94)}
+}
+/* Papel crema/rosa con gradiente de tinta y bordes delicados, sin textura pesada. */
+#carta-abierta .carta-papel{
+  box-sizing:border-box;max-width:720px;width:100%;
+  margin:0 auto;padding:clamp(44px,7vw,78px) clamp(26px,7.5vw,88px) clamp(50px,7vw,84px);
+  position:relative;text-align:left;overflow:hidden;
+  background:
+    radial-gradient(ellipse at 7% 8%,rgba(229,192,171,.42),transparent 33%),
+    radial-gradient(ellipse at 93% 94%,rgba(231,181,185,.24),transparent 38%),
+    repeating-linear-gradient(4deg,rgba(116,73,68,.014) 0px,rgba(116,73,68,.014) 1px,transparent 1px,transparent 5px),
+    linear-gradient(155deg,#fff9ec,#f5e7d7 65%,#f0dccb);
+  border:1px solid rgba(243,212,191,.78);border-radius:6px 6px 8px 8px;
+  box-shadow:0 4px 0 rgba(150,109,93,.12),
+    0 13px 34px rgba(0,0,0,.28),0 35px 85px rgba(0,0,0,.24),
+    inset 0 0 58px rgba(156,109,97,.09);
+  color:#4c3b3c;
+  font:400 clamp(19px,2.35vw,22px)/1.83 'Crimson Text',Georgia,serif;
+  transform-origin:50% 0;
+}
+#carta-abierta .carta-papel::before{
+  content:'';position:absolute;inset:14px;
+  border:1px solid rgba(151,103,113,.18);border-radius:3px;
+  pointer-events:none;
+}
+#carta-abierta .carta-papel::after{
+  content:'✦';position:absolute;right:29px;top:19px;
+  color:rgba(144,86,105,.24);font-size:23px;
+  pointer-events:none;
+}
+#carta-abierta.open .carta-papel{
+  animation:carta-hoja-desplegar .92s cubic-bezier(.19,.88,.26,1) .28s both;
+}
+@keyframes carta-hoja-desplegar{
+  0%{opacity:0;transform:translateY(65px) scale(.925) rotateX(-12deg)}
+  65%{opacity:1}
+  100%{opacity:1;transform:translateY(0) scale(1) rotateX(0)}
+}
+.carta-saludo{
+  color:#94687a;letter-spacing:.12em;
+  font:500 10px/1.5 'Montserrat',sans-serif;
+  text-transform:uppercase;margin:0 0 24px;text-align:left;
+}
+#carta-abierta .carta-papel-titulo{
+  color:#8c4662;margin:0 0 9px;
+  font:400 clamp(45px,8vw,71px)/1.03 'Great Vibes',cursive;
+  text-align:center;text-wrap:balance;
+}
+#carta-abierta .carta-papel-fecha{
+  font:500 10px/1.6 'Montserrat',sans-serif;
+  text-transform:uppercase;letter-spacing:.16em;
+  color:#996f7c;text-align:center;margin:0 0 32px;
+}
+.carta-papel-linea{
+  width:92px;height:1px;margin:0 auto 32px;
+  background:linear-gradient(90deg,transparent,#bb8a98,transparent);
+}
+#carta-abierta #ca-contenido{text-align:left;overflow-wrap:anywhere}
+#carta-abierta #ca-contenido p{
+  margin:0 0 23px;white-space:pre-line;line-height:1.86;
+}
+#carta-abierta #ca-contenido p:first-child::first-letter{
+  font-size:1.18em;
+}
+.carta-papel-final{text-align:center;margin:25px 0 4px;
+  color:#b3869c;font:400 19px Georgia,serif}
+#carta-abierta .carta-papel-firma{
+  font:400 clamp(38px,6vw,53px)/1.15 'Great Vibes',cursive;
+  color:#a25677;text-align:right;margin:25px 0 0;
+}
+.carta-despedida{
+  margin:31px auto 0;text-align:center;
+  font:italic 17px/1.5 'Crimson Text',serif;
+  color:#af9ba9;
+}
+@media(max-width:590px){
+  .carta-escena{padding:14px 14px 58px}
+  .carta-topbar{margin-bottom:6px}
+  .carta-topbar small{font-size:9px;letter-spacing:.08em}
+  .carta-back{font-size:11px;padding:10px 13px}
+  .carta-sobre-escena{height:150px;margin:0 auto -35px}
+  .carta-sobre{width:min(235px,71vw)}
+  #carta-abierta .carta-papel{padding:45px 28px 55px;font-size:19px}
+  #carta-abierta .carta-papel::before{inset:9px}
+  #carta-abierta .carta-papel-titulo{font-size:clamp(43px,12vw,59px)}
+  #carta-abierta .carta-papel-fecha{letter-spacing:.09em;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  #carta-abierta.open .carta-sobre,
+  #carta-abierta.open .carta-sobre-solapa,
+  #carta-abierta.open .carta-sobre-sello,
+  #carta-abierta.open .carta-sobre-hoja{
+    animation:none!important;opacity:0!important
+  }
+  #carta-abierta.open .carta-papel{animation:none!important;transform:none!important;opacity:1!important}
+}

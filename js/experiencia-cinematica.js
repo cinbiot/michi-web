@@ -37,8 +37,8 @@
     return '/api/foto-ver?id='+encodeURIComponent(String(foto.id||''));
   }
   function miniaturaUrl(foto,hero=false){
-    return '/api/foto-miniatura?id='+encodeURIComponent(String(foto.id||''))+
-      (hero?'&size=hero':'');
+    return '/api/foto-ver?id='+encodeURIComponent(String(foto.id||''))+
+      '&mini=1'+(hero?'&size=hero':'');
   }
   function imagenYoutube(raw){
     try{

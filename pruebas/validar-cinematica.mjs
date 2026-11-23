@@ -103,13 +103,13 @@ assert.deepEqual(limits,{fotos:6,carta:7,videos:6,sorpresas:6},'Descargar solo l
 for(const type of ['fotos','cartas','videos','sorpresas'])
   assert.equal(nodes['cinema-'+type+'-track'].children.length,6,'Deben verse exactamente seis '+type);
 assert.equal(nodes['cinema-hero-image'].src,
-  '/api/foto-miniatura?id='+firstId+'&size=hero','Portada con imagen optimizada autenticada');
+  '/api/foto-ver?id='+firstId+'&mini=1&size=hero','Portada con imagen optimizada autenticada');
 nodes['cinema-fotos-track'].children[0].handlers.click();
 nodes['cinema-cartas-track'].children[0].handlers.click();
 nodes['cinema-videos-track'].children[0].handlers.click();
 nodes['cinema-sorpresas-track'].children[0].handlers.click();
 assert.equal(opened.photos[0].url,'/api/foto-ver?id='+firstId,'Abrir fotografía seleccionada, no lista');
-assert(nodes['cinema-fotos-track'].children[0].children.some(n=>n.tagName==='img'&&n.src.startsWith('/api/foto-miniatura?')), 'Tarjeta usa miniatura WebP privada');
+assert(nodes['cinema-fotos-track'].children[0].children.some(n=>n.tagName==='img'&&n.src.startsWith('/api/foto-ver?') && n.src.includes('&mini=1')), 'Tarjeta usa miniatura WebP privada');
 assert.equal(opened.letters[0],'c1','Abrir carta exacta, excluyendo última de portada');
 assert.equal(opened.videos[0],'v0','Abrir video seleccionado');
 assert.equal(opened.surprises[0],'s0','Abrir sorpresa seleccionada');
@@ -118,9 +118,9 @@ window.MichiCinema.init();
 assert.equal(requests,4,'No duplicar consultas de portadas');
 // Lectura de cartas: sobre animado, texto legible y contenido conservado.
 const cartaCss=readFileSync('css/cartas-premium.css','utf8');
-const miniaturaApi=readFileSync('api/foto-miniatura.js','utf8');
+const miniaturaApi=readFileSync('api/foto-ver.js','utf8');
 const packageInfo=JSON.parse(readFileSync('package.json','utf8'));
-new vm.Script(miniaturaApi,{filename:'api/foto-miniatura.js'});
+new vm.Script(miniaturaApi,{filename:'api/foto-ver.js'});
 assert(html.includes('css/cartas-premium.css'),'Falta estilo de carta premium');
 assert(html.includes('class="carta-sobre-solapa"'),'Falta la apertura de sobre');
 assert(html.includes('class="carta-sobre-sello"'),'Falta el lacre decorativo');
@@ -132,9 +132,10 @@ assert(cartaCss.includes('carta-hoja-desplegar'),'La hoja debe desplegarse');
 assert(cartaCss.includes('prefers-reduced-motion'),'Respeto por movimiento reducido');
 assert(miniaturaApi.includes('C.isAuthorized(req)'),'Miniaturas deben exigir sesión');
 assert(miniaturaApi.includes("select=id,storage_path,url"),'Solo fotos registradas');
+assert(miniaturaApi.includes("req.query.mini==='1'"),'Miniatura opcional integrada al endpoint existente');
 assert(miniaturaApi.includes('render/image/sign'),'Transformaciones con firma temporal');
 assert(!packageInfo.dependencies.sharp,'Evitar dependencia Sharp incompatible con el despliegue actual');
 assert(nodes['cinema-fotos-track'].children[0].children.some(n=>
-  n.tagName==='img' && n.src.startsWith('/api/foto-miniatura?')),
+  n.tagName==='img' && n.src.startsWith('/api/foto-ver?') && n.src.includes('&mini=1')),
   'La tarjeta debe pedir una miniatura en lugar de la foto completa');
 console.log('✓ Michi: seis recientes, miniaturas privadas, sobre animado y cartas seguras.');

@@ -7,6 +7,8 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 const MAX_BYTES=22*1024*1024;
 const MAX_WIDTH=600;
 const MAX_HEIGHT=460;
+const HERO_WIDTH=1280;
+const HERO_HEIGHT=720;
 
 function origenStorage(item) {
   let path=String(item.storage_path||'');
@@ -76,9 +78,11 @@ module.exports=async function handler(req,res){
     }
     if(total<16)throw Error('Fotografía incompleta');
     const input=Buffer.concat(chunks,total);
+    const hero=req.query.size==='hero';
     const output=await sharp(input,{limitInputPixels:36000000,failOn:'warning'})
-      .rotate().resize(MAX_WIDTH,MAX_HEIGHT,{fit:'cover',position:'attention',withoutEnlargement:true})
-      .webp({quality:70,effort:3}).toBuffer();
+      .rotate().resize(hero?HERO_WIDTH:MAX_WIDTH,hero?HERO_HEIGHT:MAX_HEIGHT,
+        {fit:'cover',position:'attention',withoutEnlargement:true})
+      .webp({quality:hero?78:70,effort:3}).toBuffer();
     res.setHeader('Content-Type','image/webp');
     res.setHeader('Cache-Control','private, max-age=600');
     res.setHeader('Vary','Cookie');

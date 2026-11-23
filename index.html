@@ -548,8 +548,9 @@ function spawnDaisy(){
   document.getElementById('screen-lock').appendChild(d);
   d.addEventListener('animationend',()=>d.remove());
 }
-setInterval(spawnDaisy,700);
-for(let i=0;i<8;i++) setTimeout(spawnDaisy,i*200);
+// Solo animar margaritas mientras está visible la pantalla de desbloqueo.
+const daisyInterval=setInterval(spawnDaisy,1100);
+for(let i=0;i<6;i++) setTimeout(spawnDaisy,i*220);
 
 // ── HUELLA ──
 let scanning=false;
@@ -569,6 +570,7 @@ function startScan(){
 function unlock(){
   document.getElementById('screen-lock').classList.add('hidden');
   setTimeout(()=>{
+    clearInterval(daisyInterval);
     document.getElementById('screen-lock').style.display='none';
     document.getElementById('screen-reveal').classList.add('visible');
     document.getElementById('btn-corazon').style.display='block';
@@ -745,11 +747,28 @@ async function abrirVideos(){
   lista.innerHTML='';
   videos.forEach(v=>{
     const div=document.createElement('div'); div.className='video-item';
-    const embedUrl=v.url.includes('youtu.be')
-      ? v.url.replace('youtu.be/','youtube.com/embed/')
-      : v.url.replace('watch?v=','embed/');
-    div.innerHTML=`<iframe src="${embedUrl}" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
-      ${v.descripcion?`<div class="video-caption">${v.descripcion}</div>`:''}`;
+    const rawUrl=String(v.url||'');
+    let embedUrl=rawUrl.includes('youtu.be/')
+      ? rawUrl.replace('youtu.be/','youtube.com/embed/')
+      : rawUrl.replace('watch?v=','embed/');
+    // No interpretar el texto del video como HTML ni cargar todos los videos a la vez.
+    try{
+      const check=new URL(embedUrl);
+      if(!['https:','http:'].includes(check.protocol))throw Error('Enlace no admitido');
+      const iframe=document.createElement('iframe');
+      iframe.src=embedUrl;iframe.loading='lazy';iframe.title='Video de nuestros momentos';
+      iframe.allowFullscreen=true;iframe.allow='autoplay; fullscreen; picture-in-picture';
+      div.appendChild(iframe);
+    }catch(error){
+      const warning=document.createElement('p');
+      warning.className='video-caption';warning.textContent='El enlace de este video no se pudo abrir.';
+      div.appendChild(warning);
+    }
+    if(v.descripcion){
+      const caption=document.createElement('div');
+      caption.className='video-caption';caption.textContent=v.descripcion;
+      div.appendChild(caption);
+    }
     const barra=document.createElement('div');barra.className='video-herramientas';
     const boton=document.createElement('button');
     boton.type='button';boton.className='video-ampliar-btn';
@@ -772,11 +791,17 @@ function initCanvas(){
   const canvas=document.getElementById('canvas3d');
   const ctx=canvas.getContext('2d');
   function setSize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
-  setSize(); window.addEventListener('resize',setSize);
-  const stars=Array.from({length:200},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.4+0.2,op:Math.random(),vel:Math.random()*0.006+0.002}));
-  const orbs=Array.from({length:60},(_,i)=>({angle:(i/60)*Math.PI*2,radius:70+Math.random()*200,speed:(Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1),size:Math.random()*2.5+0.8,color:['#CC1133','#2244AA','#8899AA','#FF4466','#3366CC'][Math.floor(Math.random()*5)],op:Math.random()*0.5+0.2}));
-  let t=0;
-  function draw(){
+  setSize();
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mobile=window.innerWidth<700;
+  const stars=Array.from({length:reduced?45:(mobile?85:150)},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.4+0.2,op:Math.random(),vel:Math.random()*0.006+0.002}));
+  const count=reduced?12:(mobile?26:44);
+  const orbs=Array.from({length:count},(_,i)=>({angle:(i/count)*Math.PI*2,radius:70+Math.random()*200,speed:(Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1),size:Math.random()*2.5+0.8,color:['#CC1133','#2244AA','#8899AA','#FF4466','#3366CC'][Math.floor(Math.random()*5)],op:Math.random()*0.5+0.2}));
+  let t=0,lastFrame=0;
+  const frameMs=mobile?34:26;
+  function draw(timestamp=0){
+    if(!reduced&&timestamp&&timestamp-lastFrame<frameMs){requestAnimationFrame(draw);return;}
+    lastFrame=timestamp;
     const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
     ctx.clearRect(0,0,W,H);
     const bg=ctx.createRadialGradient(cx,cy*.7,0,cx,cy,Math.max(W,H)*.75);
@@ -791,9 +816,11 @@ function initCanvas(){
     [0,Math.PI].forEach((off,i)=>{ctx.beginPath();for(let r=0;r<220;r+=1.5){const a=r*.065+off+t*.0008;const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r*.4;r===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}ctx.strokeStyle=i===0?'#CC1133':'#2244AA';ctx.lineWidth=1.2;ctx.stroke();});
     ctx.globalAlpha=1;
     orbs.forEach(o=>{o.angle+=o.speed;const px=cx+Math.cos(o.angle+t*.0004)*o.radius,py=cy+Math.sin(o.angle+t*.0004)*o.radius*.42;ctx.beginPath();ctx.arc(px,py,o.size,0,Math.PI*2);ctx.fillStyle=o.color;ctx.globalAlpha=o.op;ctx.fill();ctx.globalAlpha=1;});
-    t++;requestAnimationFrame(draw);
+    t++;
+    if(!reduced)requestAnimationFrame(draw);
   }
   draw();
+  window.addEventListener('resize',()=>{setSize();if(reduced)draw();});
 }
 </script>
 <!-- Amplía fotografías sin alterar cartas, chat ni Supabase. -->

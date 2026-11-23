@@ -255,6 +255,45 @@
 .carta-tema-boton:focus-visible{outline:2px solid #ffe3ee;outline-offset:3px}
 .carta-tema-boton span{font-size:18px;vertical-align:middle;margin-right:4px}
 
+
+/* La biblioteca anticipa con discreción el color del sobre que se abrirá. */
+.cinema-card.letter[data-tema],.biblioteca-libro[data-tema]{
+  border-left:3px solid var(--tono-acento,#dc91b1);
+  background:
+    radial-gradient(ellipse at 70% 12%,var(--tono-brillo,rgba(232,162,198,.25)),transparent 57%),
+    linear-gradient(140deg,var(--tono-fondo,#36243f),#13192f 86%);
+}
+.cinema-card.letter[data-tema] .cinema-card-top,
+.cinema-card.letter[data-tema] .cinema-card-text::after,
+.biblioteca-libro[data-tema] .biblioteca-abrir{
+  color:var(--tono-titulo,#f4bed4);
+}
+.cinema-card.letter[data-tema]::before{color:var(--tono-brillo,rgba(255,215,231,.13))}
+[data-tema="rosa"].cinema-card.letter,[data-tema="rosa"].biblioteca-libro{
+  --tono-acento:#ec96b7;--tono-brillo:rgba(230,115,164,.28);
+  --tono-fondo:#47263e;--tono-titulo:#ffcbde;
+}
+[data-tema="marfil"].cinema-card.letter,[data-tema="marfil"].biblioteca-libro{
+  --tono-acento:#d6b477;--tono-brillo:rgba(215,180,109,.24);
+  --tono-fondo:#44372c;--tono-titulo:#ffe2a4;
+}
+[data-tema="lavanda"].cinema-card.letter,[data-tema="lavanda"].biblioteca-libro{
+  --tono-acento:#bc98dc;--tono-brillo:rgba(163,110,216,.27);
+  --tono-fondo:#35264c;--tono-titulo:#e6caff;
+}
+[data-tema="durazno"].cinema-card.letter,[data-tema="durazno"].biblioteca-libro{
+  --tono-acento:#eea78d;--tono-brillo:rgba(238,150,114,.25);
+  --tono-fondo:#482f38;--tono-titulo:#ffd5bd;
+}
+[data-tema="salvia"].cinema-card.letter,[data-tema="salvia"].biblioteca-libro{
+  --tono-acento:#a4c59d;--tono-brillo:rgba(119,173,128,.22);
+  --tono-fondo:#2a4039;--tono-titulo:#d1ebca;
+}
+[data-tema="azul"].cinema-card.letter,[data-tema="azul"].biblioteca-libro{
+  --tono-acento:#93bfe2;--tono-brillo:rgba(103,157,205,.26);
+  --tono-fondo:#283b55;--tono-titulo:#d1e8ff;
+}
+
 @media(max-width:590px){
   .carta-escena{padding:14px 14px 58px}
   .carta-topbar{margin-bottom:6px}

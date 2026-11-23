@@ -116,4 +116,25 @@ assert.equal(opened.surprises[0],'s0','Abrir sorpresa seleccionada');
 assert(nodes['cinema-videos-count'].textContent.includes('Los 6 videos'),'Etiqueta natural para videos');
 window.MichiCinema.init();
 assert.equal(requests,4,'No duplicar consultas de portadas');
-console.log('✓ Recientes: seis tarjetas, navegación directa, galería privada y acceso solo tras desbloqueo.');
+// Lectura de cartas: sobre animado, texto legible y contenido conservado.
+const cartaCss=readFileSync('css/cartas-premium.css','utf8');
+const miniaturaApi=readFileSync('api/foto-miniatura.js','utf8');
+const packageInfo=JSON.parse(readFileSync('package.json','utf8'));
+new vm.Script(miniaturaApi,{filename:'api/foto-miniatura.js'});
+assert(html.includes('css/cartas-premium.css'),'Falta estilo de carta premium');
+assert(html.includes('class="carta-sobre-solapa"'),'Falta la apertura de sobre');
+assert(html.includes('class="carta-sobre-sello"'),'Falta el lacre decorativo');
+assert(html.includes('id="ca-contenido"'),'No debe perderse el texto original');
+assert(html.includes('contenido.replaceChildren()'),'Actualizar carta sin inyección HTML');
+assert(html.includes("panel.setAttribute('aria-hidden','false')"),'Carta accesible al abrir');
+assert(html.includes("panel.classList.add('open')"),'Debe abrirse la carta');
+assert(cartaCss.includes('carta-hoja-desplegar'),'La hoja debe desplegarse');
+assert(cartaCss.includes('prefers-reduced-motion'),'Respeto por movimiento reducido');
+assert(miniaturaApi.includes('C.isAuthorized(req)'),'Miniaturas deben exigir sesión');
+assert(miniaturaApi.includes("select=id,storage_path,url"),'Solo fotos registradas');
+assert(miniaturaApi.includes('render/image/sign'),'Transformaciones con firma temporal');
+assert(!packageInfo.dependencies.sharp,'Evitar dependencia Sharp incompatible con el despliegue actual');
+assert(nodes['cinema-fotos-track'].children[0].children.some(n=>
+  n.tagName==='img' && n.src.startsWith('/api/foto-miniatura?')),
+  'La tarjeta debe pedir una miniatura en lugar de la foto completa');
+console.log('✓ Michi: seis recientes, miniaturas privadas, sobre animado y cartas seguras.');

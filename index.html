@@ -186,6 +186,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 #private-logout{position:fixed;top:19px;left:72px;z-index:150;display:none;color:#aab6d7;background:#0a143bbb;border:1px solid #263650;border-radius:30px;padding:10px;font-size:12px;cursor:pointer}
 @media(max-width:570px){.private-card{padding:30px 20px}.private-card h2{font-size:2.8rem}#btn-chat{bottom:12px}}
 </style>
+<link rel="stylesheet" href="/css/experiencia-visual.css"/>
+<link rel="stylesheet" href="/css/experiencia-cinematica.css"/>
+<link rel="stylesheet" href="/css/cartas-premium.css"/>
 </head>
 <body>
 
@@ -193,7 +196,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- Entrada con código compartido validado en servidor (Vercel). -->
 <section id="private-entry" aria-label="Acceso a la página privada">
  <div class="private-card">
-  <div style="font-size:28px;margin-bottom:8px">🌼 ❤️ 🌼</div>
+  <div class="private-bloom" aria-hidden="true">🌼 ❤️ 🌼</div>
   <h2>Para mi Michi</h2>
   <form id="private-form">
    <input class="private-input" id="private-code" type="password" autocomplete="off" required placeholder="Código de acceso" aria-label="Código privado" />
@@ -285,7 +288,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL VIDEOS -->
 <div id="panel-videos">
   <div class="panel-header">
-    <div class="panel-title">🎬 Videos especiales</div>
+    <div class="panel-title">Nuestros Momentos</div>
     <button class="panel-close" onclick="cerrarPanel('panel-videos')">×</button>
   </div>
   <div class="panel-body" id="lista-videos"><div class="loading">Cargando...</div></div>
@@ -293,42 +296,103 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 
 <!-- PANTALLA REVEAL -->
 <div id="screen-reveal">
+  <nav class="cinema-bar" aria-label="Navegación de nuestra página">
+    <button type="button" class="cinema-wordmark" data-cinema-go="inicio" aria-label="Volver al inicio">Michi <span>&amp;</span> Coquito</button>
+    <div class="cinema-menu">
+      <button type="button" data-cinema-go="inicio">Inicio</button>
+      <button type="button" data-cinema-go="fotos">Recuerdos</button>
+      <button type="button" data-cinema-go="cartas">Cartas</button>
+      <button type="button" data-cinema-go="videos">Videos</button>
+      <button type="button" data-cinema-go="sorpresas">Sorpresas <span id="cinema-surprise-indicator" class="cinema-dot" hidden aria-label="Hay sorpresas nuevas"></span></button>
+    </div>
+    <div class="cinema-utilities">
+      <button class="cinema-utility" type="button" id="cinema-music" data-cinema-go="musica" aria-pressed="false">♫ Música</button>
+      <button class="cinema-utility" type="button" data-cinema-go="salir" aria-label="Cerrar sesión privada">Salir</button>
+    </div>
+  </nav>
   <canvas id="canvas3d"></canvas>
   <div class="reveal-wrap">
-    <div class="deco-line">Dedicatoria</div>
-    <div class="page-title" id="page-title">Para mi<br/>Michi</div>
-    <div style="display:flex;gap:12px;align-items:center">
-      <svg width="28" height="28" viewBox="0 0 32 32"><g transform="translate(16,16)"><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/><circle cx="0" cy="0" r="3.5" fill="#FFD700"/></g></svg>
-      <span style="color:var(--plomo);font-size:11px;letter-spacing:3px">✦ CON TODO MI AMOR ✦</span>
-      <svg width="28" height="28" viewBox="0 0 32 32"><g transform="translate(16,16)"><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/><circle cx="0" cy="0" r="3.5" fill="#FFD700"/></g></svg>
-    </div>
-
-    <div class="carta-mes-wrap">
-      <div id="carta-container" class="carta-box loading">Cargando carta...</div>
-      <div class="hoja-btn" onclick="abrirPanelCartas()">
-        <svg width="52" height="64" viewBox="0 0 52 64" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="papelg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C8A97A"/><stop offset="100%" stop-color="#9E7A4A"/></linearGradient></defs>
-          <rect x="2" y="2" width="48" height="60" rx="3" fill="url(#papelg)" opacity="0.9"/>
-          <rect x="2" y="2" width="48" height="60" rx="3" fill="none" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="16" x2="42" y2="16" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="22" x2="38" y2="22" stroke="#7A5A30" stroke-width="0.8" opacity="0.4"/>
-          <line x1="10" y1="28" x2="42" y2="28" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="34" x2="35" y2="34" stroke="#7A5A30" stroke-width="0.8" opacity="0.4"/>
-          <line x1="10" y1="40" x2="42" y2="40" stroke="#7A5A30" stroke-width="0.8" opacity="0.5"/>
-          <line x1="10" y1="46" x2="30" y2="46" stroke="#7A5A30" stroke-width="0.8" opacity="0.4"/>
-          <text x="26" y="58" text-anchor="middle" font-size="12" fill="#7A5A30" opacity="0.7" font-family="serif">✒</text>
-          <path d="M38 2 L50 14 L38 14 Z" fill="#9E7A4A" opacity="0.6"/>
-        </svg>
-        <span>Cartas</span>
+    <div id="cinema-root">
+      <section class="cinema-hero" id="cinema-hero" aria-label="Nuestra historia destacada">
+        <img class="cinema-hero-image" id="cinema-hero-image" alt="Un recuerdo de nuestra galería privada" decoding="async"/>
+        <div class="cinema-hero-flourish" aria-hidden="true"></div>
+        <div class="cinema-floral" aria-hidden="true">✦</div>
+        <div class="cinema-hero-copy">
+          <div class="cinema-kicker">Una historia escrita entre dos</div>
+          <h1 class="cinema-hero-title" id="page-title">Para mi Michi</h1>
+          <p>Un rincón para todas las cartas que merecen quedarse, las fotografías que cuentan nuestra historia y los momentos que seguimos construyendo.</p>
+          <div class="cinema-hero-actions">
+            <button type="button" class="cinema-action primary" data-cinema-go="fotos">Explorar nuestros recuerdos&nbsp; ↗</button>
+            <button type="button" class="cinema-action secondary" data-cinema-go="ultima">Leer nuestra última carta</button>
+          </div>
+        </div>
+        <span class="cinema-hero-footer">Una página para nosotros dos · ♥</span>
+      </section>
+      <div class="cinema-scroll" aria-hidden="true"><span></span>Un recorrido por lo nuestro<span></span></div>
+      <div class="cinema-lanes" aria-label="Nuestras colecciones">
+        <section class="cinema-lane" aria-labelledby="cinema-fotos-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-fotos-heading" class="cinema-lane-heading">Momentos en fotografías</h2>
+              <p class="cinema-lane-note" id="cinema-fotos-count">Instantes para volver a mirar</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="fotos">Ver galería&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="fotos" data-cinema-direction="previous" aria-label="Fotografías anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="fotos" data-cinema-direction="next" aria-label="Fotografías siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-fotos-track" aria-label="Fotografías recientes"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Preparando nuestros recuerdos…</h3><p>Las imágenes aparecerán aquí después de desbloquear.</p></div></div></div>
+        </section>
+        <section class="cinema-lane" aria-labelledby="cinema-cartas-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-cartas-heading" class="cinema-lane-heading">Cartas que guardan lo nuestro</h2>
+              <p class="cinema-lane-note" id="cinema-cartas-count">Una biblioteca escrita con cariño</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="cartas">Abrir biblioteca&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="cartas" data-cinema-direction="previous" aria-label="Cartas anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="cartas" data-cinema-direction="next" aria-label="Cartas siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-cartas-track" aria-label="Cartas anteriores"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Abriendo nuestras cartas…</h3></div></div></div>
+        </section>
+        <section class="cinema-lane" aria-labelledby="cinema-videos-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-videos-heading" class="cinema-lane-heading">Instantes en movimiento</h2>
+              <p class="cinema-lane-note" id="cinema-videos-count">Nuestros videos especiales</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="videos">Ver videos&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="videos" data-cinema-direction="previous" aria-label="Videos anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="videos" data-cinema-direction="next" aria-label="Videos siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-videos-track" aria-label="Videos guardados"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Preparando nuestros videos…</h3></div></div></div>
+        </section>
+        <section class="cinema-lane" aria-labelledby="cinema-sorpresas-heading">
+          <div class="cinema-lane-header">
+            <div><h2 id="cinema-sorpresas-heading" class="cinema-lane-heading">Detalles que sorprenden</h2>
+              <p class="cinema-lane-note" id="cinema-sorpresas-count">Hay cosas que es bonito descubrir</p></div>
+            <div class="cinema-lane-right">
+              <button type="button" class="cinema-viewall" data-cinema-go="sorpresas">Ver sorpresas&nbsp; ↗</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="sorpresas" data-cinema-direction="previous" aria-label="Sorpresas anteriores">‹</button>
+              <button type="button" class="cinema-arrow" data-cinema-scroll="sorpresas" data-cinema-direction="next" aria-label="Sorpresas siguientes">›</button>
+            </div>
+          </div>
+          <div class="cinema-track" id="cinema-sorpresas-track" aria-label="Sorpresas guardadas"><div class="cinema-empty"><div class="cinema-empty-copy"><h3>Preparando nuestras sorpresas…</h3></div></div></div>
+        </section>
       </div>
+      <div class="cinema-feature-divider" aria-hidden="true"></div>
     </div>
+    <section class="letter-section" id="cinema-ultima-carta" aria-label="La última carta">
+      <div class="letter-heading"><h2>Nuestra última carta</h2><span id="featured-title">Escrita con cariño</span></div>
+      <div class="carta-mes-wrap">
+      <div id="carta-container" class="carta-box loading">Cargando carta...</div>
+      <button type="button" class="cinema-action secondary" onclick="abrirPanelCartas()" style="align-self:flex-end">Abrir nuestra biblioteca&nbsp; ↗</button>
+      </div>
+      <div id="carta-portada-meta" aria-live="polite"></div>
+    </section>
 
     <div class="firma" id="firma-txt">Siempre tuyo ❤</div>
-    <div>
-      <span class="heart-beat">🌼</span>
-      <span class="heart-beat" style="animation-delay:.2s">❤️</span>
-      <span class="heart-beat" style="animation-delay:.4s">🌼</span>
-    </div>
+    <div class="hero-signature" aria-hidden="true">✦ &nbsp; Mi pequeña colección de nosotros &nbsp; ✦</div>
+    <p class="reveal-footer">Una pequeña parte de nosotros, para seguir escribiendo nuestra historia. ♥</p>
   </div>
 </div>
 
@@ -338,7 +402,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
     <div class="sorpresa-emoji" id="sor-emoji">✨</div>
     <div class="sorpresa-titulo" id="sor-titulo">Algo especial para ti</div>
     <div class="sorpresa-desc" id="sor-desc"></div>
-    <a id="sor-link" href="#" class="sorpresa-btn" target="_blank">Ver ahora ❤️</a>
+    <a id="sor-link" href="#" class="sorpresa-btn" target="_blank" rel="noopener noreferrer">Ver ahora ❤️</a>
     <div class="cerrar-sorpresa" onclick="cerrarSorpresa()">Ya lo vi, guardarlo ✓</div>
   </div>
 </div>
@@ -346,29 +410,59 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL CARTAS -->
 <div id="panel-cartas">
   <div class="panel-header">
-    <div class="panel-title">💌 Cartas para Michi</div>
+    <div class="panel-title">Nuestra Biblioteca</div>
     <button class="panel-close" onclick="cerrarPanel('panel-cartas')">×</button>
   </div>
-  <div class="panel-body" id="lista-cartas"><div class="loading">Cargando...</div></div>
+  <div class="panel-body">
+    <p class="biblioteca-intro">Una colección de palabras que merecen quedarse. La última carta permanece en nuestra portada.</p>
+    <div class="biblioteca-controles"><input id="biblioteca-busqueda" class="biblioteca-busqueda" type="search" placeholder="Buscar una carta por su título o palabras…" aria-label="Buscar en la biblioteca"/></div>
+    <p class="biblioteca-resumen" id="biblioteca-resumen" aria-live="polite"></p>
+    <div id="lista-cartas"><div class="loading">Cargando...</div></div>
+  </div>
 </div>
 
-<!-- CARTA ABIERTA -->
-<div id="carta-abierta">
-  <div style="max-width:640px;margin:0 auto;padding:20px 20px 60px">
-    <button class="panel-close" style="margin-bottom:20px" onclick="cerrarPanel('carta-abierta')">← Volver</button>
-    <div class="carta-papel">
-      <div class="carta-papel-titulo" id="ca-titulo"></div>
-      <div class="carta-papel-fecha" id="ca-fecha"></div>
-      <div id="ca-contenido"></div>
-      <div class="carta-papel-firma" id="ca-firma"></div>
+<!-- CARTA ABIERTA: sobre de papel y lectura premium -->
+<div id="carta-abierta" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ca-titulo">
+  <div class="carta-escena">
+    <header class="carta-topbar">
+      <button id="carta-back" type="button" class="carta-back" onclick="cerrarPanel('carta-abierta')">← Volver</button>
+      <div class="carta-tema-controles">
+        <small id="carta-tema-nombre" aria-live="polite">Rosa</small>
+        <button id="carta-tema-cambiar" type="button" class="carta-tema-boton" onclick="cambiarColorCarta()" aria-label="Cambiar el color de la carta">
+          <span aria-hidden="true">◒</span> Cambiar color
+        </button>
+      </div>
+    </header>
+    <div class="carta-intro">
+      <h3>Entre nosotros</h3>
+      <p>Palabras que merecen quedarse</p>
     </div>
+    <div class="carta-sobre-escena" aria-hidden="true">
+      <div class="carta-sobre">
+        <div class="carta-sobre-fondo"></div>
+        <div class="carta-sobre-hoja"></div>
+        <div class="carta-sobre-frente"></div>
+        <div class="carta-sobre-solapa"></div>
+        <div class="carta-sobre-sello">♥</div>
+      </div>
+    </div>
+    <article class="carta-papel">
+      <div class="carta-saludo">De un corazón al tuyo</div>
+      <h2 class="carta-papel-titulo" id="ca-titulo"></h2>
+      <div class="carta-papel-fecha" id="ca-fecha"></div>
+      <div class="carta-papel-linea" aria-hidden="true"></div>
+      <div id="ca-contenido"></div>
+      <div class="carta-papel-final" aria-hidden="true">✦</div>
+      <div class="carta-papel-firma" id="ca-firma"></div>
+    </article>
+    <div class="carta-despedida">Guardada con amor, para volver a leerla cuando quieras.</div>
   </div>
 </div>
 
 <!-- PANEL FOTOS -->
 <div id="panel-fotos">
   <div class="panel-header">
-    <div class="panel-title">🐱 Nuestros momentos</div>
+    <div class="panel-title">Nuestros Recuerdos</div>
     <button class="panel-close" onclick="cerrarPanel('panel-fotos')">×</button>
   </div>
   <div class="panel-body">
@@ -379,7 +473,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL SORPRESAS -->
 <div id="panel-sorpresas">
   <div class="panel-header">
-    <div class="panel-title">✨ Momentos especiales</div>
+    <div class="panel-title">Momentos especiales</div>
     <button class="panel-close" onclick="cerrarPanel('panel-sorpresas')">×</button>
   </div>
   <div class="panel-body" id="lista-sorpresas"><div class="loading">Cargando...</div></div>
@@ -480,8 +574,9 @@ function spawnDaisy(){
   document.getElementById('screen-lock').appendChild(d);
   d.addEventListener('animationend',()=>d.remove());
 }
-setInterval(spawnDaisy,700);
-for(let i=0;i<8;i++) setTimeout(spawnDaisy,i*200);
+// Solo animar margaritas mientras está visible la pantalla de desbloqueo.
+const daisyInterval=setInterval(spawnDaisy,1100);
+for(let i=0;i<6;i++) setTimeout(spawnDaisy,i*220);
 
 // ── HUELLA ──
 let scanning=false;
@@ -501,6 +596,7 @@ function startScan(){
 function unlock(){
   document.getElementById('screen-lock').classList.add('hidden');
   setTimeout(()=>{
+    clearInterval(daisyInterval);
     document.getElementById('screen-lock').style.display='none';
     document.getElementById('screen-reveal').classList.add('visible');
     document.getElementById('btn-corazon').style.display='block';
@@ -520,18 +616,26 @@ function unlock(){
     });
     initCanvas();
     loadContent();
+    if(window.MichiCinema)window.MichiCinema.init();
   },1000);
 }
 
 // ── CARGAR CONTENIDO ──
+let cartaEnPortadaId=null;
 async function loadContent(){
   try{
     const{data:carta}=await sb.from('carta').select('*').order('created_at',{ascending:false}).limit(1).single();
     const el=document.getElementById('carta-container');
     if(carta){
+      cartaEnPortadaId=carta.id??null;
+      const fechaPortada=new Date(carta.created_at);
+      if(!Number.isNaN(fechaPortada.getTime())){
+        document.getElementById('carta-portada-meta').textContent=
+          fechaPortada.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+      }
       el.className='carta-box';
       el.innerHTML=carta.contenido.split('\n\n').map(p=>{const el=document.createElement('p');el.textContent=p;return el.outerHTML;}).join('');
-      if(carta.titulo) document.getElementById('page-title').textContent=carta.titulo;
+      if(carta.titulo) document.getElementById('featured-title').textContent=carta.titulo;
       if(carta.firma) document.getElementById('firma-txt').textContent=carta.firma;
     } else {
       el.className='carta-box';
@@ -542,7 +646,11 @@ async function loadContent(){
     const{data:sorpresa}=await sorpresaQuery.single();
     if(sorpresa) mostrarSorpresa(sorpresa);
     const{data:noVistas}=await sb.from('sorpresas').select('id').eq('vista',false);
-    if(noVistas&&noVistas.length>0) document.getElementById('btn-corazon').classList.add('tiene-nuevo');
+    if(noVistas&&noVistas.length>0){
+      document.getElementById('btn-corazon').classList.add('tiene-nuevo');
+      const indicator=document.getElementById('cinema-surprise-indicator');
+      if(indicator)indicator.hidden=false;
+    }
   }catch(e){
     const el=document.getElementById('carta-container');
     el.className='carta-box';
@@ -568,6 +676,8 @@ async function cerrarSorpresa(){
   if(sorpresaActual&&!IS_PREVIEW){
     await sb.from('sorpresas').update({vista:true}).eq('id',sorpresaActual.id);
     document.getElementById('btn-corazon').classList.remove('tiene-nuevo');
+    const indicator=document.getElementById('cinema-surprise-indicator');
+    if(indicator)indicator.hidden=true;
   }
   document.getElementById('sorpresa-overlay').classList.remove('visible');
   reanudarPorContenido(); // reanuda música al cerrar sorpresa
@@ -576,27 +686,76 @@ async function cerrarSorpresa(){
 // ── PANEL CARTAS ──
 async function abrirPanelCartas(){
   document.getElementById('panel-cartas').classList.add('open');
-  const{data:cartas}=await sb.from('carta').select('*').order('created_at',{ascending:false});
   const lista=document.getElementById('lista-cartas');
-  if(!cartas||cartas.length===0){lista.innerHTML='<div class="empty-msg">Aún no hay cartas guardadas.</div>';return;}
-  lista.innerHTML='';
-  cartas.forEach(c=>{
-    const fecha=new Date(c.created_at).toLocaleDateString('es',{year:'numeric',month:'long'});
-    const preview=c.titulo||'Carta sin título';
-    const div=document.createElement('div'); div.className='carta-item';
-    div.innerHTML=`<div class="carta-fecha">${fecha}</div><div class="carta-preview-txt">${preview}</div><div class="carta-arrow">›</div>`;
-    div.onclick=()=>abrirCarta(c);
-    lista.appendChild(div);
-  });
+  lista.innerHTML='<div class="loading">Abriendo nuestra biblioteca…</div>';
+  const{data:cartas,error}=await sb.from('carta').select('*').order('created_at',{ascending:false});
+  if(error){
+    lista.textContent='No fue posible cargar las cartas. Prueba nuevamente.';
+    return;
+  }
+  if(window.MichiVisual && typeof window.MichiVisual.mostrarBiblioteca==='function'){
+    window.MichiVisual.mostrarBiblioteca(cartas,cartaEnPortadaId);
+  }else{
+    lista.innerHTML='';
+    (cartas||[]).filter(c=>cartaEnPortadaId==null||String(c.id)!==String(cartaEnPortadaId))
+      .forEach(c=>{
+        const btn=document.createElement('button');
+        btn.className='carta-item';btn.type='button';
+        btn.textContent=c.titulo||'Abrir carta';
+        btn.onclick=()=>abrirCarta(c);
+        lista.appendChild(btn);
+      });
+    if(!lista.children.length)lista.textContent='La última carta te espera en la portada.';
+  }
 }
 
+const CARTA_TEMAS=['rosa','marfil','lavanda','durazno','salvia','azul'];
+const CARTA_NOMBRES={
+  rosa:'Rosa',marfil:'Marfil dorado',lavanda:'Lavanda',
+  durazno:'Durazno',salvia:'Verde salvia',azul:'Azul cielo'
+};
+let ultimaCartaElementoActivo=null;
+function temaDeCarta(c){
+  // Tema fijo por identificador: una carta conserva su color entre visitas.
+  const key=String(c?.id||c?.created_at||c?.titulo||'michi');
+  let hash=2166136261;
+  for(let i=0;i<key.length;i++){
+    hash=Math.imul(hash^key.charCodeAt(i),16777619)>>>0;
+  }
+  return CARTA_TEMAS[hash%CARTA_TEMAS.length];
+}
+function aplicarColorCarta(tema){
+  const safe=CARTA_TEMAS.includes(tema)?tema:'rosa';
+  document.getElementById('carta-abierta').dataset.tema=safe;
+  document.getElementById('carta-tema-nombre').textContent=CARTA_NOMBRES[safe];
+}
+function cambiarColorCarta(){
+  const panel=document.getElementById('carta-abierta');
+  const indice=CARTA_TEMAS.indexOf(panel.dataset.tema);
+  aplicarColorCarta(CARTA_TEMAS[(indice+1)%CARTA_TEMAS.length]);
+}
 function abrirCarta(c){
-  const fecha=new Date(c.created_at).toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});
+  const date=new Date(c.created_at);
+  const fecha=Number.isNaN(date.getTime())?'Un día para recordar':
+    date.toLocaleDateString('es-BO',{year:'numeric',month:'long',day:'numeric'});
   document.getElementById('ca-titulo').textContent=c.titulo||'Carta de amor';
   document.getElementById('ca-fecha').textContent=fecha;
-  document.getElementById('ca-contenido').innerHTML=c.contenido.split('\n\n').map(p=>{const el=document.createElement('p');el.textContent=p;return el.outerHTML;}).join('');
+  const contenido=document.getElementById('ca-contenido');
+  contenido.replaceChildren();
+  String(c.contenido||'').split(/\n\s*\n/).forEach(parrafo=>{
+    if(!parrafo.trim())return;
+    const el=document.createElement('p');
+    el.textContent=parrafo;
+    contenido.appendChild(el);
+  });
   document.getElementById('ca-firma').textContent=c.firma||'Con todo mi amor ❤';
-  document.getElementById('carta-abierta').classList.add('open');
+  aplicarColorCarta(temaDeCarta(c));
+  ultimaCartaElementoActivo=document.activeElement;
+  const panel=document.getElementById('carta-abierta');
+  panel.scrollTop=0;
+  panel.setAttribute('aria-hidden','false');
+  panel.classList.add('open');
+  document.getElementById('carta-back').focus({preventScroll:true});
 }
 
 // ── PANEL FOTOS ──
@@ -607,8 +766,19 @@ async function abrirFotos(){
   if(!fotos||fotos.length===0){grid.innerHTML='<div class="empty-msg">Aún no hay fotos guardadas.</div>';return;}
   grid.innerHTML='';
   fotos.forEach(f=>{
-    const img=document.createElement('img'); img.src='/api/foto-ver?id='+encodeURIComponent(f.id); img.alt='Fotografía de nuestros momentos'; img.loading='lazy';
-    img.onerror=()=>{img.removeAttribute('src');img.alt='No se puede mostrar esta foto. Comprueba el archivo en Supabase Storage.';};
+    const img=document.createElement('img');
+    img.alt='Fotografía de nuestros momentos';img.loading='lazy';img.decoding='async';
+    img.width=460;img.height=460;
+    img.onerror=()=>{
+      if(!img.dataset.originalTried){
+        img.dataset.originalTried='1';
+        img.src='/api/foto-ver?id='+encodeURIComponent(f.id);
+      }else{
+        img.removeAttribute('src');
+        img.alt='No se puede mostrar esta foto. Comprueba el archivo en Supabase Storage.';
+      }
+    };
+    img.src='/api/foto-ver?id='+encodeURIComponent(f.id)+'&mini=1';
     grid.appendChild(img);
   });
 }
@@ -622,10 +792,15 @@ async function abrirSorpresas(){
   lista.innerHTML='';
   sorpresas.forEach(s=>{
     const fecha=new Date(s.created_at).toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});
-    const a=document.createElement('a'); a.className='sorpresa-item';
-    a.href=s.url||'#'; if(s.url) a.target='_blank';
-    a.innerHTML=`<div class="sorpresa-item-emoji">${s.emoji||'✨'}</div><div class="sorpresa-item-info"><div class="sorpresa-item-titulo">${s.titulo}</div><div class="sorpresa-item-fecha">${fecha}</div></div><div class="carta-arrow">›</div>`;
-    lista.appendChild(a);
+    const a=document.createElement('a');a.className='sorpresa-item';
+    a.href=s.url||'#';
+    if(s.url){a.target='_blank';a.rel='noopener noreferrer';}
+    const emoji=document.createElement('div');emoji.className='sorpresa-item-emoji';emoji.textContent=s.emoji||'✨';
+    const info=document.createElement('div');info.className='sorpresa-item-info';
+    const titulo=document.createElement('div');titulo.className='sorpresa-item-titulo';titulo.textContent=s.titulo||'Una sorpresa especial';
+    const fech=document.createElement('div');fech.className='sorpresa-item-fecha';fech.textContent=fecha;
+    const arrow=document.createElement('div');arrow.className='carta-arrow';arrow.textContent='›';
+    info.append(titulo,fech);a.append(emoji,info,arrow);lista.appendChild(a);
   });
 }
 
@@ -651,20 +826,71 @@ function alternarTamanoVideo(item){
 document.addEventListener('keydown',event=>{
   if(event.key === 'Escape' && videoAmpliado){reducirVideo();}
 });
-async function abrirVideos(){
+// Se usa tanto para "Ver todos" como para abrir un video concreto desde su portada.
+function enlaceVideoEmbed(original){
+  try{
+    const u=new URL(String(original||''));
+    if(u.protocol!=='https:')return null;
+    const host=u.hostname.toLowerCase();
+    if(host==='youtu.be'||host==='www.youtu.be'){
+      const id=u.pathname.split('/')[1];
+      if(/^[a-zA-Z0-9_-]{11}$/.test(id))return 'https://www.youtube-nocookie.com/embed/'+id;
+    }
+    if(['youtube.com','www.youtube.com','m.youtube.com','www.youtube-nocookie.com','youtube-nocookie.com'].includes(host)){
+      const id=u.searchParams.get('v')||u.pathname.match(/^\/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})/)?.[1];
+      if(/^[a-zA-Z0-9_-]{11}$/.test(id||''))return 'https://www.youtube-nocookie.com/embed/'+id;
+    }
+    if(host==='drive.google.com'){
+      const id=u.pathname.match(/^\/file\/d\/([A-Za-z0-9_-]+)/)?.[1]||u.searchParams.get('id');
+      if(id&&/^[A-Za-z0-9_-]{10,}$/.test(id))
+        return 'https://drive.google.com/file/d/'+id+'/preview';
+    }
+    // Conservar el comportamiento de otros enlaces HTTPS existentes.
+    return u.href;
+  }catch(_){return null;}
+}
+async function abrirVideos(videoId=null){
   document.getElementById('panel-videos').classList.add('open');
   silenciarPorContenido();
-  const{data:videos}=await sb.from('videos').select('*').order('created_at',{ascending:false});
   const lista=document.getElementById('lista-videos');
+  lista.innerHTML='<div class="loading">Cargando nuestros videos...</div>';
+  const{data:videos,error}=await sb.from('videos').select('*').order('created_at',{ascending:false});
+  if(error){lista.textContent='No pudimos cargar los videos. Prueba de nuevo.';return;}
   if(!videos||videos.length===0){lista.innerHTML='<div class="empty-msg">Aún no hay videos guardados.</div>';return;}
+  const selected=videoId==null?null:videos.find(v=>String(v.id)===String(videoId));
+  // Un clic en portada muestra el video elegido en primer plano, no salta a
+  // una lista de videos sin identificar. "Ver más" muestra todo cronológicamente.
+  const orden=selected?[selected,...videos.filter(v=>v!==selected)]:videos;
   lista.innerHTML='';
-  videos.forEach(v=>{
-    const div=document.createElement('div'); div.className='video-item';
-    const embedUrl=v.url.includes('youtu.be')
-      ? v.url.replace('youtu.be/','youtube.com/embed/')
-      : v.url.replace('watch?v=','embed/');
-    div.innerHTML=`<iframe src="${embedUrl}" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
-      ${v.descripcion?`<div class="video-caption">${v.descripcion}</div>`:''}`;
+  orden.forEach((v,index)=>{
+    const destacado=!!selected&&index===0;
+    const div=document.createElement('article');
+    div.className='video-item'+(destacado?' video-seleccionado':'');
+    if(destacado){
+      const label=document.createElement('div');
+      label.className='video-etiqueta';label.textContent='EL VIDEO QUE ELEGISTE';
+      div.appendChild(label);
+    }
+    const embedUrl=enlaceVideoEmbed(v.url);
+    if(embedUrl){
+      const iframe=document.createElement('iframe');
+      iframe.src=embedUrl;
+      iframe.loading=destacado?'eager':'lazy';
+      iframe.title=String(v.descripcion||'Video de nuestros momentos').slice(0,130);
+      iframe.allowFullscreen=true;
+      iframe.referrerPolicy='strict-origin-when-cross-origin';
+      iframe.allow='autoplay; fullscreen; picture-in-picture';
+      div.appendChild(iframe);
+    }else{
+      const warning=document.createElement('p');
+      warning.className='video-caption';warning.textContent='El enlace de este video no se pudo abrir.';
+      div.appendChild(warning);
+    }
+    if(v.descripcion){
+      const caption=document.createElement('div');
+      caption.className='video-caption';caption.textContent=v.descripcion;
+      div.appendChild(caption);
+    }
     const barra=document.createElement('div');barra.className='video-herramientas';
     const boton=document.createElement('button');
     boton.type='button';boton.className='video-ampliar-btn';
@@ -672,12 +898,29 @@ async function abrirVideos(){
     boton.addEventListener('click',()=>alternarTamanoVideo(div));
     barra.appendChild(boton);div.prepend(barra);
     lista.appendChild(div);
+    if(destacado){
+      const divider=document.createElement('p');
+      divider.className='video-mas-titulo';divider.textContent='También puedes explorar los demás videos';
+      lista.appendChild(divider);
+    }
   });
+  if(selected){
+    // El panel es el contenedor de desplazamiento; el video elegido queda arriba.
+    lista.scrollTop=0;
+    document.getElementById('panel-videos').scrollTop=0;
+  }
 }
 
 function cerrarPanel(id){
   if(id === 'panel-videos') reducirVideo();
   document.getElementById(id).classList.remove('open');
+  if(id==='carta-abierta'){
+    document.getElementById(id).setAttribute('aria-hidden','true');
+    if(ultimaCartaElementoActivo?.isConnected){
+      ultimaCartaElementoActivo.focus({preventScroll:true});
+    }
+    ultimaCartaElementoActivo=null;
+  }
   // Solo reanuda música si se cerró la sorpresa o un video
   if(id === 'panel-sorpresas' || id === 'panel-videos') reanudarPorContenido();
 }
@@ -687,11 +930,17 @@ function initCanvas(){
   const canvas=document.getElementById('canvas3d');
   const ctx=canvas.getContext('2d');
   function setSize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
-  setSize(); window.addEventListener('resize',setSize);
-  const stars=Array.from({length:200},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.4+0.2,op:Math.random(),vel:Math.random()*0.006+0.002}));
-  const orbs=Array.from({length:60},(_,i)=>({angle:(i/60)*Math.PI*2,radius:70+Math.random()*200,speed:(Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1),size:Math.random()*2.5+0.8,color:['#CC1133','#2244AA','#8899AA','#FF4466','#3366CC'][Math.floor(Math.random()*5)],op:Math.random()*0.5+0.2}));
-  let t=0;
-  function draw(){
+  setSize();
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mobile=window.innerWidth<700;
+  const stars=Array.from({length:reduced?45:(mobile?85:150)},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.4+0.2,op:Math.random(),vel:Math.random()*0.006+0.002}));
+  const count=reduced?12:(mobile?26:44);
+  const orbs=Array.from({length:count},(_,i)=>({angle:(i/count)*Math.PI*2,radius:70+Math.random()*200,speed:(Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1),size:Math.random()*2.5+0.8,color:['#CC1133','#2244AA','#8899AA','#FF4466','#3366CC'][Math.floor(Math.random()*5)],op:Math.random()*0.5+0.2}));
+  let t=0,lastFrame=0;
+  const frameMs=mobile?34:26;
+  function draw(timestamp=0){
+    if(!reduced&&timestamp&&timestamp-lastFrame<frameMs){requestAnimationFrame(draw);return;}
+    lastFrame=timestamp;
     const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
     ctx.clearRect(0,0,W,H);
     const bg=ctx.createRadialGradient(cx,cy*.7,0,cx,cy,Math.max(W,H)*.75);
@@ -706,12 +955,16 @@ function initCanvas(){
     [0,Math.PI].forEach((off,i)=>{ctx.beginPath();for(let r=0;r<220;r+=1.5){const a=r*.065+off+t*.0008;const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r*.4;r===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}ctx.strokeStyle=i===0?'#CC1133':'#2244AA';ctx.lineWidth=1.2;ctx.stroke();});
     ctx.globalAlpha=1;
     orbs.forEach(o=>{o.angle+=o.speed;const px=cx+Math.cos(o.angle+t*.0004)*o.radius,py=cy+Math.sin(o.angle+t*.0004)*o.radius*.42;ctx.beginPath();ctx.arc(px,py,o.size,0,Math.PI*2);ctx.fillStyle=o.color;ctx.globalAlpha=o.op;ctx.fill();ctx.globalAlpha=1;});
-    t++;requestAnimationFrame(draw);
+    t++;
+    if(!reduced)requestAnimationFrame(draw);
   }
   draw();
+  window.addEventListener('resize',()=>{setSize();if(reduced)draw();});
 }
 </script>
 <!-- Amplía fotografías sin alterar cartas, chat ni Supabase. -->
+<script defer src="/js/experiencia-visual.js"></script>
+<script defer src="/js/experiencia-cinematica.js"></script>
 <script defer src="/js/visor-fotos.js"></script>
 </body>
 </html>

@@ -1,0 +1,26 @@
+name: Validar experiencia visual Michi
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "css/experiencia-visual.css"
+      - "js/experiencia-visual.js"
+      - "pruebas/validar-experiencia-visual.mjs"
+      - ".github/workflows/validar-experiencia-visual.yml"
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "css/experiencia-visual.css"
+      - "js/experiencia-visual.js"
+      - "pruebas/validar-experiencia-visual.mjs"
+      - ".github/workflows/validar-experiencia-visual.yml"
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node pruebas/validar-experiencia-visual.mjs

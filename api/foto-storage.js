@@ -1,5 +1,6 @@
 const C=require('../lib/michi-common');
 const crypto=require('node:crypto');
+const Thumb=require('../lib/michi-photo-thumbnails');
 const BUCKET='chat-archivos';
 const PREFIX='galeria/';
 module.exports=async function handler(req,res){
@@ -22,7 +23,16 @@ module.exports=async function handler(req,res){
    const b=C.jsonBody(req);
    const path=b.path;
    if(typeof path!=='string'||!path.startsWith(PREFIX)||!/^[a-zA-Z0-9/._-]+$/.test(path))return C.fail(res,400,'Ruta incorrecta.');
-   await C.supabaseRequest('/storage/v1/object/'+BUCKET,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path]})});
+   // Al borrar una fotografía nueva, borrar también sus dos miniaturas.
+   // El borrado sucede exclusivamente dentro del mismo bucket privado.
+   const previewPaths=[
+     Thumb.pathFor(BUCKET,path,false),
+     Thumb.pathFor(BUCKET,path,true)
+   ];
+   await C.supabaseRequest('/storage/v1/object/'+BUCKET,{
+     method:'DELETE',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({prefixes:[path,...previewPaths]})
+   });
    return res.status(200).json({ok:true});
   }
   return C.fail(res,405,'Método no permitido.');

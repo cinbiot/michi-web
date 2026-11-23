@@ -1,0 +1,35 @@
+name: Validar miniaturas y paletas Michi
+on:
+  pull_request:
+    paths:
+      - "api/foto-ver.js"
+      - "api/foto-storage.js"
+      - "lib/michi-photo-thumbnails.js"
+      - "admin/index.html"
+      - "index.html"
+      - "js/experiencia-cinematica.js"
+      - "css/cartas-premium.css"
+      - "pruebas/validar-miniaturas-y-paletas.mjs"
+      - ".github/workflows/validar-miniaturas-y-paletas.yml"
+  push:
+    branches: [main]
+    paths:
+      - "api/foto-ver.js"
+      - "api/foto-storage.js"
+      - "lib/michi-photo-thumbnails.js"
+      - "admin/index.html"
+      - "index.html"
+      - "js/experiencia-cinematica.js"
+      - "css/cartas-premium.css"
+      - "pruebas/validar-miniaturas-y-paletas.mjs"
+      - ".github/workflows/validar-miniaturas-y-paletas.yml"
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Comprobar privacidad y caché de miniaturas, y colores de cartas
+        run: node pruebas/validar-miniaturas-y-paletas.mjs

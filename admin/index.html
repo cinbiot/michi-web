@@ -215,6 +215,12 @@ label:first-of-type{margin-top:0;}
     </div>
     <div class="card">
       <h3>Fotos guardadas</h3>
+      <p style="font-size:12px;color:var(--plomo);line-height:1.7;margin:9px 0 13px">
+        Las miniaturas se guardan de forma privada. Puedes optimizar las fotos anteriores una sola vez para acelerar su carga.
+      </p>
+      <button id="foto-optimizar-btn" type="button" class="btn btn-secondary" onclick="optimizarFotosGuardadas()"
+        style="margin:0 0 10px;min-height:44px">⚡ Optimizar fotografías existentes</button>
+      <p id="foto-optimizar-progreso" style="font-size:12px;color:var(--plomo);margin:0 0 15px" aria-live="polite"></p>
       <div class="fotos-grid" id="fotos-grid"><div style="color:var(--plomo);font-size:13px">Cargando...</div></div>
     </div>
   </div>
@@ -333,6 +339,57 @@ async function saveSorpresa(){
 async function deleteSorpresa(id){if(!confirm('¿Eliminar esta sorpresa?'))return;await sb.from('sorpresas').delete().eq('id',id);toast('🗑️ Eliminada');loadSorpresas();}
 
 // FOTOS
+function prepararMiniatura(id,hero=false){
+  // Image carga el recurso privado aunque la URL firmada redirija a Supabase.
+  return new Promise(resolve=>{
+    if(!/^[a-f0-9-]{36}$/i.test(String(id||''))){resolve(false);return;}
+    const image=new Image();
+    let finished=false;
+    const timeout=setTimeout(()=>finish(false),28000);
+    function finish(ok){
+      if(finished)return;
+      finished=true;clearTimeout(timeout);
+      image.onload=null;image.onerror=null;resolve(ok);
+    }
+    image.onload=()=>finish(true);
+    image.onerror=()=>finish(false);
+    image.src='/api/foto-ver?id='+encodeURIComponent(id)+'&mini=1'+(hero?'&size=hero':'');
+  });
+}
+async function optimizarFotosGuardadas(){
+  const btn=document.getElementById('foto-optimizar-btn');
+  const progress=document.getElementById('foto-optimizar-progreso');
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='Preparando miniaturas…';
+  try{
+    const{data,error}=await sb.from('fotos').select('*').order('created_at',{ascending:false}).limit(1000);
+    if(error)throw error;
+    const fotos=data||[];
+    let completed=0,failed=0,next=0;
+    if(!fotos.length){progress.textContent='Todavía no hay fotografías para optimizar.';return;}
+    progress.textContent='Preparando 0 de '+fotos.length+' fotografías…';
+    const workers=Array.from({length:Math.min(2,fotos.length)},async()=>{
+      while(next<fotos.length){
+        const index=next++;
+        const foto=fotos[index];
+        const ok=await prepararMiniatura(foto.id);
+        if(!ok)failed++;
+        if(index===0)await prepararMiniatura(foto.id,true);
+        completed++;
+        progress.textContent='Preparando '+completed+' de '+fotos.length+
+          ' fotografías…'+(failed?' ('+failed+' no se pudieron optimizar)':'');
+      }
+    });
+    await Promise.all(workers);
+    progress.textContent='Optimización terminada: '+(completed-failed)+' de '+completed+
+      ' fotografías preparadas.'+(failed?' Las otras siguen disponibles en su formato original.':'');
+    loadFotos();
+  }catch(error){
+    progress.textContent='No se pudo terminar la optimización. Inténtalo nuevamente.';
+  }finally{
+    btn.disabled=false;btn.textContent='⚡ Optimizar fotografías existentes';
+  }
+}
 async function loadFotos(){
   const{data}=await sb.from('fotos').select('*').order('created_at',{ascending:false});
   const grid=document.getElementById('fotos-grid');
@@ -341,9 +398,16 @@ async function loadFotos(){
   data.forEach(f=>{
     const div=document.createElement('div');div.className='foto-item';
     const img=document.createElement('img');
-    img.src='/api/foto-ver?id='+encodeURIComponent(f.id);
-    img.loading='lazy';img.alt='Fotografía de nuestros momentos';
-    img.onerror=()=>{img.removeAttribute('src');img.alt='Foto no disponible: revisar archivo en Supabase';};
+    img.src='/api/foto-ver?id='+encodeURIComponent(f.id)+'&mini=1';
+    img.loading='lazy';img.decoding='async';img.alt='Fotografía de nuestros momentos';
+    img.onerror=()=>{
+      if(!img.dataset.originalTried){
+        img.dataset.originalTried='1';
+        img.src='/api/foto-ver?id='+encodeURIComponent(f.id);
+      }else{
+        img.removeAttribute('src');img.alt='Foto no disponible: revisar archivo en Supabase';
+      }
+    };
     const boton=document.createElement('button');boton.className='foto-delete';boton.type='button';
     boton.textContent='×';boton.setAttribute('aria-label','Eliminar fotografía');
     boton.addEventListener('click',()=>deleteFoto(f.id,f.storage_path));
@@ -353,16 +417,25 @@ async function loadFotos(){
 async function uploadFotos(files){
   if(!files.length)return;
   const pw=document.getElementById('foto-pw');const pb=document.getElementById('foto-pb');
-  pw.style.display='block';pb.style.width='0%';let done=0;
+  pw.style.display='block';pb.style.width='0%';let done=0;let newestId=null;
   for(const file of files){
     const ext=file.name.split('.').pop();
     const path=`fotos/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const{data:upData,error:upErr}=await sb.storage.from('media').upload(path,file,{contentType:file.type});
     if(upErr){toast(`❌ Error subiendo ${file.name}`,'err2');continue;}
     const{data:urlData}=sb.storage.from('media').getPublicUrl(upData.path);
-    const{error:dbErr}=await sb.from('fotos').insert({url:urlData.publicUrl,storage_path:upData.path}); if(dbErr){toast('❌ No se pudo guardar la foto en la galería','err2');continue;}
-    done++;pb.style.width=`${(done/files.length)*100}%`;
+    const{data:rows,error:dbErr}=await sb.from('fotos').insert({url:urlData.publicUrl,storage_path:upData.path});
+    if(dbErr){toast('❌ No se pudo guardar la foto en la galería','err2');continue;}
+    done++;
+    const fotoId=Array.isArray(rows)?rows[0]?.id:null;
+    if(fotoId){
+      newestId=fotoId;
+      // La miniatura se genera y guarda al subir, no al visitar la portada.
+      await prepararMiniatura(fotoId);
+    }
+    pb.style.width=`${(done/files.length)*100}%`;
   }
+  if(newestId)await prepararMiniatura(newestId,true);
   pw.style.display='none';toast(`✅ ${done} foto${done>1?'s':''} subida${done>1?'s':''}`);
   loadFotos();document.getElementById('foto-input').value='';
 }

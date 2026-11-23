@@ -1,6 +1,6 @@
-const assert=require('node:assert/strict');
-const {readFileSync}=require('node:fs');
-const vm=require('node:vm');
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
 const html=readFileSync('index.html','utf8');
 const css=readFileSync('css/experiencia-visual.css','utf8');
 const js=readFileSync('js/experiencia-visual.js','utf8');

@@ -749,28 +749,62 @@ function alternarTamanoVideo(item){
 document.addEventListener('keydown',event=>{
   if(event.key === 'Escape' && videoAmpliado){reducirVideo();}
 });
-async function abrirVideos(){
+// Se usa tanto para "Ver todos" como para abrir un video concreto desde su portada.
+function enlaceVideoEmbed(original){
+  try{
+    const u=new URL(String(original||''));
+    if(u.protocol!=='https:')return null;
+    const host=u.hostname.toLowerCase();
+    if(host==='youtu.be'||host==='www.youtu.be'){
+      const id=u.pathname.split('/')[1];
+      if(/^[a-zA-Z0-9_-]{11}$/.test(id))return 'https://www.youtube-nocookie.com/embed/'+id;
+    }
+    if(['youtube.com','www.youtube.com','m.youtube.com','www.youtube-nocookie.com','youtube-nocookie.com'].includes(host)){
+      const id=u.searchParams.get('v')||u.pathname.match(/^\/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})/)?.[1];
+      if(/^[a-zA-Z0-9_-]{11}$/.test(id||''))return 'https://www.youtube-nocookie.com/embed/'+id;
+    }
+    if(host==='drive.google.com'){
+      const id=u.pathname.match(/^\/file\/d\/([A-Za-z0-9_-]+)/)?.[1]||u.searchParams.get('id');
+      if(id&&/^[A-Za-z0-9_-]{10,}$/.test(id))
+        return 'https://drive.google.com/file/d/'+id+'/preview';
+    }
+    // Conservar el comportamiento de otros enlaces HTTPS existentes.
+    return u.href;
+  }catch(_){return null;}
+}
+async function abrirVideos(videoId=null){
   document.getElementById('panel-videos').classList.add('open');
   silenciarPorContenido();
-  const{data:videos}=await sb.from('videos').select('*').order('created_at',{ascending:false});
   const lista=document.getElementById('lista-videos');
+  lista.innerHTML='<div class="loading">Cargando nuestros videos...</div>';
+  const{data:videos,error}=await sb.from('videos').select('*').order('created_at',{ascending:false});
+  if(error){lista.textContent='No pudimos cargar los videos. Prueba de nuevo.';return;}
   if(!videos||videos.length===0){lista.innerHTML='<div class="empty-msg">Aún no hay videos guardados.</div>';return;}
+  const selected=videoId==null?null:videos.find(v=>String(v.id)===String(videoId));
+  // Un clic en portada muestra el video elegido en primer plano, no salta a
+  // una lista de videos sin identificar. "Ver más" muestra todo cronológicamente.
+  const orden=selected?[selected,...videos.filter(v=>v!==selected)]:videos;
   lista.innerHTML='';
-  videos.forEach(v=>{
-    const div=document.createElement('div'); div.className='video-item';
-    const rawUrl=String(v.url||'');
-    let embedUrl=rawUrl.includes('youtu.be/')
-      ? rawUrl.replace('youtu.be/','youtube.com/embed/')
-      : rawUrl.replace('watch?v=','embed/');
-    // No interpretar el texto del video como HTML ni cargar todos los videos a la vez.
-    try{
-      const check=new URL(embedUrl);
-      if(!['https:','http:'].includes(check.protocol))throw Error('Enlace no admitido');
+  orden.forEach((v,index)=>{
+    const destacado=!!selected&&index===0;
+    const div=document.createElement('article');
+    div.className='video-item'+(destacado?' video-seleccionado':'');
+    if(destacado){
+      const label=document.createElement('div');
+      label.className='video-etiqueta';label.textContent='EL VIDEO QUE ELEGISTE';
+      div.appendChild(label);
+    }
+    const embedUrl=enlaceVideoEmbed(v.url);
+    if(embedUrl){
       const iframe=document.createElement('iframe');
-      iframe.src=embedUrl;iframe.loading='lazy';iframe.title='Video de nuestros momentos';
-      iframe.allowFullscreen=true;iframe.allow='autoplay; fullscreen; picture-in-picture';
+      iframe.src=embedUrl;
+      iframe.loading=destacado?'eager':'lazy';
+      iframe.title=String(v.descripcion||'Video de nuestros momentos').slice(0,130);
+      iframe.allowFullscreen=true;
+      iframe.referrerPolicy='strict-origin-when-cross-origin';
+      iframe.allow='autoplay; fullscreen; picture-in-picture';
       div.appendChild(iframe);
-    }catch(error){
+    }else{
       const warning=document.createElement('p');
       warning.className='video-caption';warning.textContent='El enlace de este video no se pudo abrir.';
       div.appendChild(warning);
@@ -787,7 +821,17 @@ async function abrirVideos(){
     boton.addEventListener('click',()=>alternarTamanoVideo(div));
     barra.appendChild(boton);div.prepend(barra);
     lista.appendChild(div);
+    if(destacado){
+      const divider=document.createElement('p');
+      divider.className='video-mas-titulo';divider.textContent='También puedes explorar los demás videos';
+      lista.appendChild(divider);
+    }
   });
+  if(selected){
+    // El panel es el contenedor de desplazamiento; el video elegido queda arriba.
+    lista.scrollTop=0;
+    document.getElementById('panel-videos').scrollTop=0;
+  }
 }
 
 function cerrarPanel(id){

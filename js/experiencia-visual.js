@@ -70,6 +70,7 @@
         const date=fechaValida(carta);
         const btn=crear('button','biblioteca-libro');
         btn.type='button';
+        if(typeof temaDeCarta==='function')btn.dataset.tema=temaDeCarta(carta);
         btn.setAttribute('aria-label','Abrir carta: '+(carta.titulo||'Sin título'));
         btn.appendChild(crear('span','biblioteca-fecha',fechaCorta(date)));
         btn.appendChild(crear('span','biblioteca-titulo',carta.titulo||'Una carta para ti'));

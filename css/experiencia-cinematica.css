@@ -37,6 +37,10 @@
 }
 .cinema-menu button:first-child{color:#ffe5ef}
 .cinema-menu button:hover,.cinema-menu button:focus-visible{color:#fff}
+.cinema-dot{display:inline-block;vertical-align:middle;width:6px;height:6px;
+  border-radius:50%;background:#f68aad;margin-left:5px;
+  box-shadow:0 0 12px rgba(248,130,177,.8)}
+.cinema-dot[hidden]{display:none!important}
 .cinema-menu button::after{content:'';display:block;width:0;height:2px;border-radius:2px;
   background:#e8a3c0;margin-top:6px;transition:width .25s}
 .cinema-menu button:hover::after,.cinema-menu button:focus-visible::after{width:100%}

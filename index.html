@@ -188,6 +188,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 </style>
 <link rel="stylesheet" href="/css/experiencia-visual.css"/>
 <link rel="stylesheet" href="/css/experiencia-cinematica.css"/>
+<link rel="stylesheet" href="/css/cartas-premium.css"/>
 </head>
 <body>
 
@@ -420,16 +421,36 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
   </div>
 </div>
 
-<!-- CARTA ABIERTA -->
-<div id="carta-abierta">
-  <div style="max-width:640px;margin:0 auto;padding:20px 20px 60px">
-    <button class="panel-close" style="margin-bottom:20px" onclick="cerrarPanel('carta-abierta')">← Volver</button>
-    <div class="carta-papel">
-      <div class="carta-papel-titulo" id="ca-titulo"></div>
-      <div class="carta-papel-fecha" id="ca-fecha"></div>
-      <div id="ca-contenido"></div>
-      <div class="carta-papel-firma" id="ca-firma"></div>
+<!-- CARTA ABIERTA: sobre de papel y lectura premium -->
+<div id="carta-abierta" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ca-titulo">
+  <div class="carta-escena">
+    <header class="carta-topbar">
+      <button id="carta-back" type="button" class="carta-back" onclick="cerrarPanel('carta-abierta')">← Volver</button>
+      <small>Una carta para ti · Michi</small>
+    </header>
+    <div class="carta-intro">
+      <h3>Entre nosotros</h3>
+      <p>Palabras que merecen quedarse</p>
     </div>
+    <div class="carta-sobre-escena" aria-hidden="true">
+      <div class="carta-sobre">
+        <div class="carta-sobre-fondo"></div>
+        <div class="carta-sobre-hoja"></div>
+        <div class="carta-sobre-frente"></div>
+        <div class="carta-sobre-solapa"></div>
+        <div class="carta-sobre-sello">♥</div>
+      </div>
+    </div>
+    <article class="carta-papel">
+      <div class="carta-saludo">De un corazón al tuyo</div>
+      <h2 class="carta-papel-titulo" id="ca-titulo"></h2>
+      <div class="carta-papel-fecha" id="ca-fecha"></div>
+      <div class="carta-papel-linea" aria-hidden="true"></div>
+      <div id="ca-contenido"></div>
+      <div class="carta-papel-final" aria-hidden="true">✦</div>
+      <div class="carta-papel-firma" id="ca-firma"></div>
+    </article>
+    <div class="carta-despedida">Guardada con amor, para volver a leerla cuando quieras.</div>
   </div>
 </div>
 
@@ -683,13 +704,28 @@ async function abrirPanelCartas(){
   }
 }
 
+let ultimaCartaElementoActivo=null;
 function abrirCarta(c){
-  const fecha=new Date(c.created_at).toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});
+  const date=new Date(c.created_at);
+  const fecha=Number.isNaN(date.getTime())?'Un día para recordar':
+    date.toLocaleDateString('es-BO',{year:'numeric',month:'long',day:'numeric'});
   document.getElementById('ca-titulo').textContent=c.titulo||'Carta de amor';
   document.getElementById('ca-fecha').textContent=fecha;
-  document.getElementById('ca-contenido').innerHTML=c.contenido.split('\n\n').map(p=>{const el=document.createElement('p');el.textContent=p;return el.outerHTML;}).join('');
+  const contenido=document.getElementById('ca-contenido');
+  contenido.replaceChildren();
+  String(c.contenido||'').split(/\n\s*\n/).forEach(parrafo=>{
+    if(!parrafo.trim())return;
+    const el=document.createElement('p');
+    el.textContent=parrafo;
+    contenido.appendChild(el);
+  });
   document.getElementById('ca-firma').textContent=c.firma||'Con todo mi amor ❤';
-  document.getElementById('carta-abierta').classList.add('open');
+  ultimaCartaElementoActivo=document.activeElement;
+  const panel=document.getElementById('carta-abierta');
+  panel.scrollTop=0;
+  panel.setAttribute('aria-hidden','false');
+  panel.classList.add('open');
+  document.getElementById('carta-back').focus({preventScroll:true});
 }
 
 // ── PANEL FOTOS ──
@@ -837,6 +873,13 @@ async function abrirVideos(videoId=null){
 function cerrarPanel(id){
   if(id === 'panel-videos') reducirVideo();
   document.getElementById(id).classList.remove('open');
+  if(id==='carta-abierta'){
+    document.getElementById(id).setAttribute('aria-hidden','true');
+    if(ultimaCartaElementoActivo?.isConnected){
+      ultimaCartaElementoActivo.focus({preventScroll:true});
+    }
+    ultimaCartaElementoActivo=null;
+  }
   // Solo reanuda música si se cerró la sorpresa o un video
   if(id === 'panel-sorpresas' || id === 'panel-videos') reanudarPorContenido();
 }

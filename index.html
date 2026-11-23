@@ -186,6 +186,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 #private-logout{position:fixed;top:19px;left:72px;z-index:150;display:none;color:#aab6d7;background:#0a143bbb;border:1px solid #263650;border-radius:30px;padding:10px;font-size:12px;cursor:pointer}
 @media(max-width:570px){.private-card{padding:30px 20px}.private-card h2{font-size:2.8rem}#btn-chat{bottom:12px}}
 </style>
+<link rel="stylesheet" href="/css/experiencia-visual.css"/>
 </head>
 <body>
 
@@ -193,7 +194,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- Entrada con código compartido validado en servidor (Vercel). -->
 <section id="private-entry" aria-label="Acceso a la página privada">
  <div class="private-card">
-  <div style="font-size:28px;margin-bottom:8px">🌼 ❤️ 🌼</div>
+  <div class="private-bloom" aria-hidden="true">🌼 ❤️ 🌼</div>
   <h2>Para mi Michi</h2>
   <form id="private-form">
    <input class="private-input" id="private-code" type="password" autocomplete="off" required placeholder="Código de acceso" aria-label="Código privado" />
@@ -295,15 +296,41 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <div id="screen-reveal">
   <canvas id="canvas3d"></canvas>
   <div class="reveal-wrap">
-    <div class="deco-line">Dedicatoria</div>
+    <div class="deco-line">Un capítulo de nuestra historia</div>
     <div class="page-title" id="page-title">Para mi<br/>Michi</div>
+    <p class="hero-subtitle">Cartas, recuerdos y pequeños instantes que quiero seguir guardando <strong>contigo</strong>.</p>
+    <div class="hero-divider" aria-hidden="true"></div>
     <div style="display:flex;gap:12px;align-items:center">
       <svg width="28" height="28" viewBox="0 0 32 32"><g transform="translate(16,16)"><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/><circle cx="0" cy="0" r="3.5" fill="#FFD700"/></g></svg>
       <span style="color:var(--plomo);font-size:11px;letter-spacing:3px">✦ CON TODO MI AMOR ✦</span>
       <svg width="28" height="28" viewBox="0 0 32 32"><g transform="translate(16,16)"><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(0)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(45)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(90)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(135)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(180)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(225)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(270)"/><ellipse cx="0" cy="-8" rx="2.5" ry="5.5" fill="white" opacity="0.9" transform="rotate(315)"/><circle cx="0" cy="0" r="3.5" fill="#FFD700"/></g></svg>
     </div>
 
-    <div class="carta-mes-wrap">
+    <nav class="experience-nav" aria-label="Explorar nuestra página">
+      <button type="button" class="experience-tile" onclick="abrirPanelCartas()">
+        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">💌</span>
+        <span class="tile-heading">Nuestra Biblioteca</span>
+        <span class="tile-note">Todas nuestras cartas</span>
+      </button>
+      <button type="button" class="experience-tile" onclick="abrirFotos()">
+        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">📷</span>
+        <span class="tile-heading">Nuestros Recuerdos</span>
+        <span class="tile-note">Momentos en fotografías</span>
+      </button>
+      <button type="button" class="experience-tile" onclick="abrirSorpresas()">
+        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">✨</span>
+        <span class="tile-heading">Sorpresas</span>
+        <span class="tile-note">Pequeños detalles para ti</span>
+      </button>
+      <button type="button" class="experience-tile" onclick="abrirVideos()">
+        <span class="tile-arrow" aria-hidden="true">↗</span><span class="tile-icon" aria-hidden="true">🎬</span>
+        <span class="tile-heading">Nuestros Momentos</span>
+        <span class="tile-note">Videos para recordar</span>
+      </button>
+    </nav>
+    <section class="letter-section" aria-label="La última carta">
+      <div class="letter-heading"><h2>Nuestra última carta</h2><span>Escrita con cariño</span></div>
+      <div class="carta-mes-wrap">
       <div id="carta-container" class="carta-box loading">Cargando carta...</div>
       <div class="hoja-btn" onclick="abrirPanelCartas()">
         <svg width="52" height="64" viewBox="0 0 52 64" xmlns="http://www.w3.org/2000/svg">
@@ -319,9 +346,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
           <text x="26" y="58" text-anchor="middle" font-size="12" fill="#7A5A30" opacity="0.7" font-family="serif">✒</text>
           <path d="M38 2 L50 14 L38 14 Z" fill="#9E7A4A" opacity="0.6"/>
         </svg>
-        <span>Cartas</span>
+        <span>Ver biblioteca</span>
       </div>
-    </div>
+      </div>
+      <div id="carta-portada-meta" aria-live="polite"></div>
+    </section>
 
     <div class="firma" id="firma-txt">Siempre tuyo ❤</div>
     <div>
@@ -329,6 +358,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
       <span class="heart-beat" style="animation-delay:.2s">❤️</span>
       <span class="heart-beat" style="animation-delay:.4s">🌼</span>
     </div>
+    <p class="reveal-footer">Una pequeña parte de nosotros, para seguir escribiendo nuestra historia. ♥</p>
   </div>
 </div>
 
@@ -346,10 +376,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
 <!-- PANEL CARTAS -->
 <div id="panel-cartas">
   <div class="panel-header">
-    <div class="panel-title">💌 Cartas para Michi</div>
+    <div class="panel-title">💌 Nuestra Biblioteca</div>
     <button class="panel-close" onclick="cerrarPanel('panel-cartas')">×</button>
   </div>
-  <div class="panel-body" id="lista-cartas"><div class="loading">Cargando...</div></div>
+  <div class="panel-body">
+    <p class="biblioteca-intro">Una colección de palabras que merecen quedarse. La última carta permanece en nuestra portada.</p>
+    <div class="biblioteca-controles"><input id="biblioteca-busqueda" class="biblioteca-busqueda" type="search" placeholder="Buscar una carta por su título o palabras…" aria-label="Buscar en la biblioteca"/></div>
+    <p class="biblioteca-resumen" id="biblioteca-resumen" aria-live="polite"></p>
+    <div id="lista-cartas"><div class="loading">Cargando...</div></div>
+  </div>
 </div>
 
 <!-- CARTA ABIERTA -->
@@ -524,11 +559,18 @@ function unlock(){
 }
 
 // ── CARGAR CONTENIDO ──
+let cartaEnPortadaId=null;
 async function loadContent(){
   try{
     const{data:carta}=await sb.from('carta').select('*').order('created_at',{ascending:false}).limit(1).single();
     const el=document.getElementById('carta-container');
     if(carta){
+      cartaEnPortadaId=carta.id??null;
+      const fechaPortada=new Date(carta.created_at);
+      if(!Number.isNaN(fechaPortada.getTime())){
+        document.getElementById('carta-portada-meta').textContent=
+          fechaPortada.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+      }
       el.className='carta-box';
       el.innerHTML=carta.contenido.split('\n\n').map(p=>{const el=document.createElement('p');el.textContent=p;return el.outerHTML;}).join('');
       if(carta.titulo) document.getElementById('page-title').textContent=carta.titulo;
@@ -576,18 +618,27 @@ async function cerrarSorpresa(){
 // ── PANEL CARTAS ──
 async function abrirPanelCartas(){
   document.getElementById('panel-cartas').classList.add('open');
-  const{data:cartas}=await sb.from('carta').select('*').order('created_at',{ascending:false});
   const lista=document.getElementById('lista-cartas');
-  if(!cartas||cartas.length===0){lista.innerHTML='<div class="empty-msg">Aún no hay cartas guardadas.</div>';return;}
-  lista.innerHTML='';
-  cartas.forEach(c=>{
-    const fecha=new Date(c.created_at).toLocaleDateString('es',{year:'numeric',month:'long'});
-    const preview=c.titulo||'Carta sin título';
-    const div=document.createElement('div'); div.className='carta-item';
-    div.innerHTML=`<div class="carta-fecha">${fecha}</div><div class="carta-preview-txt">${preview}</div><div class="carta-arrow">›</div>`;
-    div.onclick=()=>abrirCarta(c);
-    lista.appendChild(div);
-  });
+  lista.innerHTML='<div class="loading">Abriendo nuestra biblioteca…</div>';
+  const{data:cartas,error}=await sb.from('carta').select('*').order('created_at',{ascending:false});
+  if(error){
+    lista.textContent='No fue posible cargar las cartas. Prueba nuevamente.';
+    return;
+  }
+  if(window.MichiVisual && typeof window.MichiVisual.mostrarBiblioteca==='function'){
+    window.MichiVisual.mostrarBiblioteca(cartas,cartaEnPortadaId);
+  }else{
+    lista.innerHTML='';
+    (cartas||[]).filter(c=>cartaEnPortadaId==null||String(c.id)!==String(cartaEnPortadaId))
+      .forEach(c=>{
+        const btn=document.createElement('button');
+        btn.className='carta-item';btn.type='button';
+        btn.textContent=c.titulo||'Abrir carta';
+        btn.onclick=()=>abrirCarta(c);
+        lista.appendChild(btn);
+      });
+    if(!lista.children.length)lista.textContent='La última carta te espera en la portada.';
+  }
 }
 
 function abrirCarta(c){
@@ -712,6 +763,7 @@ function initCanvas(){
 }
 </script>
 <!-- Amplía fotografías sin alterar cartas, chat ni Supabase. -->
+<script defer src="/js/experiencia-visual.js"></script>
 <script defer src="/js/visor-fotos.js"></script>
 </body>
 </html>

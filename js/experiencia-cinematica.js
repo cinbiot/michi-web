@@ -53,7 +53,7 @@
       return /^[a-zA-Z0-9_-]{11}$/.test(id)?'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg':null;
     }catch(e){return null;}
   }
-  function makeCard(kind,title,detail,imageUrl,action,excerpt,isNewest=false){
+  function makeCard(kind,title,detail,imageUrl,action,excerpt,isNewest=false,priority=false){
     const card=el('button','cinema-card '+kind);
     card.type='button';
     card.setAttribute('aria-label','Abrir '+(title||'recuerdo'));
@@ -67,8 +67,8 @@
       pic.width=kind==='photo'?600:480;
       pic.height=kind==='photo'?460:270;
       pic.decoding='async';
-      pic.loading=kind==='photo'&&isNewest?'eager':'lazy';
-      pic.fetchPriority=kind==='photo'&&isNewest?'high':'auto';
+      pic.loading=kind==='photo'&&(isNewest||priority)?'eager':'lazy';
+      pic.fetchPriority=kind==='photo'&&(isNewest||priority)?'high':'auto';
       pic.addEventListener('load',()=>card.classList.add('is-ready'));
       pic.addEventListener('error',()=>{
         // La vista previa puede fallar si el original es demasiado grande o no es JPG/PNG/WebP.
@@ -148,13 +148,8 @@
             if(!visor?.abrirPorUrl(fotoUrl(item),item.descripcion||'Un momento nuestro')){
               openSection('fotos');
             }
-          },null,position===0);
+          },null,position===0,position===1);
         card.dataset.photoId=String(item.id||'');
-        const preview=card.querySelector?.('img');
-        if(preview&&position===1){
-          preview.loading='eager';
-          preview.fetchPriority='high';
-        }
       }else if(kind==='cartas'){
         card=makeCard('letter',item.titulo||'Unas palabras para ti',
           fechaGuardada(item.created_at),null,

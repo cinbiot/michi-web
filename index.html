@@ -426,7 +426,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--negro);font-fa
   <div class="carta-escena">
     <header class="carta-topbar">
       <button id="carta-back" type="button" class="carta-back" onclick="cerrarPanel('carta-abierta')">← Volver</button>
-      <small>Una carta para ti · Michi</small>
+      <div class="carta-tema-controles">
+        <small id="carta-tema-nombre" aria-live="polite">Rosa</small>
+        <button id="carta-tema-cambiar" type="button" class="carta-tema-boton" onclick="cambiarColorCarta()" aria-label="Cambiar el color de la carta">
+          <span aria-hidden="true">◒</span> Cambiar color
+        </button>
+      </div>
     </header>
     <div class="carta-intro">
       <h3>Entre nosotros</h3>
@@ -704,7 +709,31 @@ async function abrirPanelCartas(){
   }
 }
 
+const CARTA_TEMAS=['rosa','marfil','lavanda','durazno','salvia','azul'];
+const CARTA_NOMBRES={
+  rosa:'Rosa',marfil:'Marfil dorado',lavanda:'Lavanda',
+  durazno:'Durazno',salvia:'Verde salvia',azul:'Azul cielo'
+};
 let ultimaCartaElementoActivo=null;
+function temaDeCarta(c){
+  // Tema fijo por identificador: una carta conserva su color entre visitas.
+  const key=String(c?.id||c?.created_at||c?.titulo||'michi');
+  let hash=2166136261;
+  for(let i=0;i<key.length;i++){
+    hash=Math.imul(hash^key.charCodeAt(i),16777619)>>>0;
+  }
+  return CARTA_TEMAS[hash%CARTA_TEMAS.length];
+}
+function aplicarColorCarta(tema){
+  const safe=CARTA_TEMAS.includes(tema)?tema:'rosa';
+  document.getElementById('carta-abierta').dataset.tema=safe;
+  document.getElementById('carta-tema-nombre').textContent=CARTA_NOMBRES[safe];
+}
+function cambiarColorCarta(){
+  const panel=document.getElementById('carta-abierta');
+  const indice=CARTA_TEMAS.indexOf(panel.dataset.tema);
+  aplicarColorCarta(CARTA_TEMAS[(indice+1)%CARTA_TEMAS.length]);
+}
 function abrirCarta(c){
   const date=new Date(c.created_at);
   const fecha=Number.isNaN(date.getTime())?'Un día para recordar':
@@ -720,6 +749,7 @@ function abrirCarta(c){
     contenido.appendChild(el);
   });
   document.getElementById('ca-firma').textContent=c.firma||'Con todo mi amor ❤';
+  aplicarColorCarta(temaDeCarta(c));
   ultimaCartaElementoActivo=document.activeElement;
   const panel=document.getElementById('carta-abierta');
   panel.scrollTop=0;

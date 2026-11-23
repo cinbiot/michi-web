@@ -36,6 +36,10 @@
   function fotoUrl(foto){
     return '/api/foto-ver?id='+encodeURIComponent(String(foto.id||''));
   }
+  function miniaturaUrl(foto,hero=false){
+    return '/api/foto-miniatura?id='+encodeURIComponent(String(foto.id||''))+
+      (hero?'&size=hero':'');
+  }
   function imagenYoutube(raw){
     try{
       const u=new URL(String(raw));
@@ -59,10 +63,26 @@
     }
     if(imageUrl){
       const pic=el('img');
-      pic.src=imageUrl;pic.loading='lazy';pic.decoding='async';
-      pic.alt=''; // El título ya comunica el contenido.
-      pic.addEventListener('error',()=>{pic.remove();});
+      pic.alt=''; // El título de la tarjeta comunica el contenido.
+      pic.width=kind==='photo'?600:480;
+      pic.height=kind==='photo'?460:270;
+      pic.decoding='async';
+      pic.loading=kind==='photo'&&isNewest?'eager':'lazy';
+      pic.fetchPriority=kind==='photo'&&isNewest?'high':'auto';
+      pic.addEventListener('load',()=>card.classList.add('is-ready'));
+      pic.addEventListener('error',()=>{
+        // La vista previa puede fallar si el original es demasiado grande o no es JPG/PNG/WebP.
+        // En ese caso se usa el endpoint original, sin borrar el archivo existente.
+        if(kind==='photo'&&!pic.dataset.originalTried){
+          pic.dataset.originalTried='1';
+          const id=card.dataset.photoId;
+          if(id){pic.src='/api/foto-ver?id='+encodeURIComponent(id);return;}
+        }
+        pic.remove();
+        card.classList.add('image-unavailable');
+      });
       card.appendChild(pic);
+      pic.src=imageUrl;
     }
     if(kind==='video')card.appendChild(el('span','cinema-play','▶'));
     const content=el('span','cinema-card-text');
@@ -123,12 +143,18 @@
       if(kind==='fotos'){
         card=makeCard('photo',item.descripcion||'Un momento nuestro',
           (fechaGuardada(item.created_at)?'Guardada en '+fechaGuardada(item.created_at):'Nuestra galería'),
-          fotoUrl(item),()=>{
+          miniaturaUrl(item,position===0),()=>{
             const visor=window.MichiFotoVisor;
             if(!visor?.abrirPorUrl(fotoUrl(item),item.descripcion||'Un momento nuestro')){
               openSection('fotos');
             }
           },null,position===0);
+        card.dataset.photoId=String(item.id||'');
+        const preview=card.querySelector('img');
+        if(preview&&position===1){
+          preview.loading='eager';
+          preview.fetchPriority='high';
+        }
       }else if(kind==='cartas'){
         card=makeCard('letter',item.titulo||'Unas palabras para ti',
           fechaGuardada(item.created_at),null,
@@ -157,8 +183,17 @@
     // Únicamente recursos privados de /api/foto-ver (autorización en servidor).
     const first=fotos[0];
     heroPhoto.onload=()=>hero.classList.add('has-photo');
-    heroPhoto.onerror=()=>hero.classList.remove('has-photo');
-    heroPhoto.src=fotoUrl(first);
+    heroPhoto.onerror=()=>{
+      if(!heroPhoto.dataset.originalTried){
+        heroPhoto.dataset.originalTried='1';
+        heroPhoto.src=fotoUrl(first);
+      }else hero.classList.remove('has-photo');
+    };
+    heroPhoto.loading='eager';
+    heroPhoto.fetchPriority='high';
+    // La misma variante se utiliza en la primera tarjeta para compartir
+    // descarga y caché privada del navegador.
+    heroPhoto.src=miniaturaUrl(first,true);
   }
 
   function setupControls(){

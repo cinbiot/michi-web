@@ -115,7 +115,8 @@
     const description=document.getElementById('cinema-'+kind+'-count');
     if(description){
       const noun={fotos:'fotografías',cartas:'cartas',videos:'videos',sorpresas:'sorpresas'}[kind];
-      description.textContent='Las '+recientes.length+' '+noun+' más recientes · Toca para abrir';
+      const article=kind==='videos'?'Los ':'Las ';
+      description.textContent=article+recientes.length+' '+noun+' más recientes · Toca para abrir';
     }
     for(const [position,item] of recientes.entries()){
       let card;
@@ -139,8 +140,11 @@
             if(typeof abrirVideos==='function')abrirVideos(item.id);
           },null,position===0);
       }else{
-        card=makeCard('surprise',item.titulo||'Algo especial para ti',
-          trim(item.descripcion,68),null,()=>{
+        const pendiente=item.vista===false;
+        card=makeCard('surprise',
+          pendiente?'Una sorpresa por descubrir':(item.titulo||'Algo especial para ti'),
+          pendiente?'Abre este detalle especial':trim(item.descripcion,68),
+          null,()=>{
             if(typeof mostrarSorpresa==='function')mostrarSorpresa(item);
           },null,position===0);
       }
